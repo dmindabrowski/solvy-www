@@ -1,0 +1,859 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import Szablon from '../components/Szablon.astro';
+import Kropki from '../components/Kropki.astro';
+import oferta from '../data/oferta.json';
+import { t, zl } from '../lib/tekst';
+import ddabrowski from '../assets/realizacja-ddabrowski.png';
+import kozicki from '../assets/realizacja-kozicki.png';
+import gry from '../assets/realizacja-gry.png';
+import timer from '../assets/realizacja-timer.png';
+import panelStatystyki from '../assets/panel-0-statystyki.png';
+import panelZgloszenie from '../assets/panel-1-zgloszenie.png';
+import panelWycena from '../assets/panel-2-wycena.png';
+import panelPostep from '../assets/panel-3-postep.png';
+
+// Files from the public folder get the address prefix of the place the site is published at.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const { firma, budowa, grafika, pakiety, wKazdymPakiecie, etapy, realizacje, pytania, hasla, kontakt } = oferta;
+// While working locally the link leads to the panel running on this computer.
+const panelUrl = import.meta.env.DEV ? 'http://127.0.0.1:8000' : firma.panelUrl;
+const mail = `mailto:${firma.email}?subject=${encodeURIComponent('Zapytanie o stronę')}`;
+const obrazy = { ddabrowski, kozicki, gry, timer };
+// What a client does in the panel, each with the fragment of the panel that shows it.
+const panelKroki = [
+	{
+		ikona: 'chart',
+		tytul: 'Wiesz, kto odwiedza stronę',
+		tekst: 'Liczba odwiedzin, najczęściej oglądane podstrony i źródła wejść w jednym miejscu.',
+		obraz: panelStatystyki,
+		alt: 'Zakładka Statystyki w panelu: liczba odwiedzin i gości z ostatnich 30 dni oraz wykres odwiedzin dzień po dniu.',
+	},
+	{
+		ikona: 'message',
+		tytul: 'Zgłaszasz jednym zdaniem',
+		tekst: 'Piszesz zwykłymi słowami, co ma się zmienić. Nie musisz znać się na stronach.',
+		obraz: panelZgloszenie,
+		alt: 'Formularz nowego zgłoszenia w panelu: pole „Co zmienić?” z wpisaną prośbą o poprawienie godzin otwarcia i przycisk „Wyślij zgłoszenie”.',
+	},
+	{
+		ikona: 'receipt',
+		tytul: 'Znasz koszt przed startem',
+		tekst: 'Zmiana w pakiecie rusza od razu. Większą wyceniamy, a Ty akceptujesz cenę jednym kliknięciem.',
+		obraz: panelWycena,
+		alt: 'Zgłoszenie na etapie wyceny: opis zmiany, kwota 300 zł netto i przycisk „Akceptuję 300 zł netto”.',
+	},
+	{
+		ikona: 'progress',
+		tytul: 'Widzisz, co się dzieje',
+		tekst: 'Każda zmiana ma swój status i historię, od zgłoszenia do publikacji.',
+		obraz: panelPostep,
+		alt: 'Zakończone zgłoszenie: cztery odhaczone etapy i komunikat „Zmiana opublikowana”.',
+	},
+] as const;
+
+interface Cecha {
+	ikona: 'calendar' | 'clock' | 'progress' | 'receipt';
+	przed?: string;
+	mocno?: string;
+	po?: string;
+	szczegol?: string;
+}
+---
+
+<Layout
+	title="Solvy: strony internetowe dla małych firm, z opieką w abonamencie"
+	description="Budujemy strony dla małych firm, utrzymujemy je i aktualizujemy. Stałe ceny, zmiany zgłaszane w panelu, strona i domena zostają Twoje."
+>
+	<section class="hero">
+		<Kropki />
+		<div class="wrap hero__grid">
+			<div class="hero__text">
+				<p class="eyebrow">
+					{
+						['Studio cyfrowe', 'Strony', 'Logo'].map((pozycja, nr) => (
+							<span>
+								{nr > 0 && (
+									<svg viewBox="0 0 48 48" aria-hidden="true">
+										<path d="M24 0c2 15 9 22 24 24-15 2-22 9-24 24-2-15-9-22-24-24 15-2 22-9 24-24z" fill="currentColor" />
+									</svg>
+								)}
+								{pozycja}
+							</span>
+						))
+					}
+				</p>
+				<h1>
+					Strony internetowe.
+					{/* Screen readers get one stable sentence; the changing ones are decoration. */}
+					<span class="sr-only">{hasla[0].join(' ')}</span>
+					<span class="swap" aria-hidden="true" data-swap>
+						{
+							hasla.map((haslo, nr) => (
+								<span class:list={['swap__item', { 'is-active': nr === 0 }]}>
+									{haslo.map((czesc) => (
+										<>
+											<span class="swap__part">{t(czesc)}</span>{' '}
+										</>
+									))}
+								</span>
+							))
+						}
+					</span>
+				</h1>
+				<p class="lead">Projektujemy i&nbsp;budujemy strony dla firm. Utrzymujemy&nbsp;je i&nbsp;wprowadzamy zmiany.</p>
+				<div class="hero__actions">
+					<a class="cta" href="#kontakt">
+						Zapytaj o&nbsp;stronę
+						<span class="cta__arrow"><Icon name="arrow-right" size={18} /></span>
+					</a>
+					<a class="cta-ghost" href="#cennik">Zobacz cennik</a>
+				</div>
+			</div>
+
+			<Szablon />
+		</div>
+	</section>
+
+	<section class="section" id="realizacje" aria-labelledby="realizacje-h">
+		<div class="wrap section__grid">
+			<header class="section__head">
+				<h2 id="realizacje-h"><svg class="spark" viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path d="M24 0c2 15 9 22 24 24-15 2-22 9-24 24-2-15-9-22-24-24 15-2 22-9 24-24z" fill="currentColor"></path></svg>Realizacje</h2>
+			</header>
+
+			<div class="carousel" data-carousel data-reveal="self">
+				<button type="button" class="carousel__button carousel__button--prev" aria-label="Poprzednia realizacja" hidden>
+					<Icon name="arrow-left" size={20} />
+				</button>
+				<button type="button" class="carousel__button carousel__button--next" aria-label="Następna realizacja" hidden>
+					<Icon name="arrow-right" size={20} />
+				</button>
+
+				<ul class="works" tabindex="0" aria-label="Realizacje, lista przewijana w poziomie">
+				{
+					realizacje.map((praca) => (
+						<li class="work">
+							<div class="work__shot">
+								<Image
+									src={obrazy[praca.obraz as keyof typeof obrazy]}
+									alt={praca.alt}
+									widths={[480, 720, 1040]}
+									sizes="(min-width: 48rem) 32rem, 100vw"
+									loading="lazy"
+								/>
+							</div>
+							<div class="work__body">
+								<p class="work__kind">{praca.rodzaj}</p>
+								<h3>{praca.nazwa}</h3>
+								<p>{t(praca.opis)}</p>
+							</div>
+							<p class="work__links">
+								{praca.url && (
+									<a href={praca.url} rel="noopener">
+										Zobacz stronę<span class="sr-only">: {praca.nazwa}</span> <Icon name="arrow-right" size={15} />
+									</a>
+								)}
+								{praca.ksiega && (
+									<a href={base + praca.ksiega} target="_blank" rel="noopener">
+										Księga znaku<span class="sr-only">: {praca.nazwa}</span> <Icon name="external" size={13} />
+									</a>
+								)}
+								{praca.uwaga && <span class="work__note">{praca.uwaga}</span>}
+							</p>
+						</li>
+					))
+				}
+				</ul>
+			</div>
+
+			<div class="work work--next" data-reveal="self">
+				<span class="sketch" aria-hidden="true">
+					<span class="sketch__top">
+						<b>Twoja firma</b>
+						<i></i>
+						<i></i>
+						<i class="sketch__cta"></i>
+					</span>
+					<span class="sketch__hero">
+						<i class="sketch__line"></i>
+						<i class="sketch__line sketch__line--short"></i>
+						<i class="sketch__text"></i>
+						<i class="sketch__button"></i>
+					</span>
+					<span class="sketch__boxes">
+						<i></i>
+						<i></i>
+						<i></i>
+					</span>
+				</span>
+				<div class="work__body">
+					<h3>Tu może być Twoja strona</h3>
+					<p>Wizytówka od {zl(budowa[0].cena)} netto. Od pierwszej rozmowy do działającej strony mija około 10&nbsp;dni.</p>
+				</div>
+				<p class="work__links">
+					<a href="#cennik">
+						Zobacz ceny <Icon name="arrow-right" size={15} />
+					</a>
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="section section--alt" id="wspolpraca" aria-labelledby="jak-h">
+		<div class="wrap section__grid">
+			<header class="section__head">
+				<h2 id="jak-h"><svg class="spark" viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path d="M24 0c2 15 9 22 24 24-15 2-22 9-24 24-2-15-9-22-24-24 15-2 22-9 24-24z" fill="currentColor"></path></svg>Współpraca</h2>
+				<p>Od pierwszej rozmowy do działającej strony mija około 10&nbsp;dni.</p>
+			</header>
+
+			<ol class="steps" data-reveal="steps">
+				{
+					etapy.map((etap, nr) => (
+						<li class:list={{ 'steps__ongoing': nr === etapy.length - 1 }}>
+							<span class="steps__dot" aria-hidden="true">
+								{nr === etapy.length - 1 ? <Icon name="progress" size={17} /> : nr + 1}
+							</span>
+							<span class="steps__time">{etap.czas}</span>
+							<h3>{t(etap.tytul)}</h3>
+							<p>{t(etap.tekst)}</p>
+						</li>
+					))
+				}
+			</ol>
+		</div>
+	</section>
+
+	<section class="section" id="cennik" aria-labelledby="cennik-h">
+		<div class="wrap section__grid">
+			<header class="section__head">
+				<h2 id="cennik-h"><svg class="spark" viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path d="M24 0c2 15 9 22 24 24-15 2-22 9-24 24-2-15-9-22-24-24 15-2 22-9 24-24z" fill="currentColor"></path></svg>Cennik</h2>
+				<p>Wszystkie ceny netto. Abonament w&nbsp;umowie na 12&nbsp;miesięcy.</p>
+			</header>
+
+			<div class="prices">
+				{/* One-off prices: building a site on the left, a logo on the right, each as one card of rows. */}
+				<div class="onetime" data-reveal="group">
+					<div class="onetime__group">
+						<h3 class="prices__title">Budowa strony <span>jednorazowo</span></h3>
+						<ul class="pricelist">
+							{
+								budowa.map((wariant) => (
+									<li>
+										<button type="button" class="pick" data-pick="strona" data-name={wariant.nazwa} data-price={wariant.cena} aria-pressed="false">
+											<span class="pick__mark" aria-hidden="true">
+												<Icon name="check" size={13} />
+											</span>
+											<span class="pick__text">
+												<strong>
+													{wariant.nazwa}
+													{wariant.wyroznienie && (
+														<span class="badge">
+															<Icon name="star" size={13} /> {wariant.wyroznienie}
+														</span>
+													)}
+												</strong>
+												<small>{t(wariant.zakres)}</small>
+											</span>
+											<span class="pricelist__price">
+												<b>{zl(wariant.cena)}</b>
+											</span>
+										</button>
+									</li>
+								))
+							}
+						</ul>
+					</div>
+
+					<div class="onetime__group">
+						<h3 class="prices__title">
+							Logo <span>jednorazowo</span>
+							<a href={base + grafika.przyklad} target="_blank" rel="noopener">
+								Przykładowa księga znaku <Icon name="external" size={13} />
+							</a>
+						</h3>
+						<ul class="pricelist">
+							{
+								grafika.warianty.map((wariant) => (
+									<li>
+										<button type="button" class="pick" data-pick="logo" data-name={wariant.nazwa} data-price={wariant.cena} aria-pressed="false">
+											<span class="pick__mark" aria-hidden="true">
+												<Icon name="check" size={13} />
+											</span>
+											<span class="pick__text">
+												<strong>{wariant.nazwa}</strong>
+												<small>{t(wariant.zakres)}</small>
+											</span>
+											<span class="pricelist__price">
+												<b>{zl(wariant.cena)}</b>
+											</span>
+										</button>
+									</li>
+								))
+							}
+						</ul>
+					</div>
+				</div>
+				<p class="onetime__note">
+					<Icon name="plus" size={14} /> Do strony dobierz logo i&nbsp;zapłać za nie {zl(grafika.rabatZeStrona)} mniej.
+				</p>
+				<h3 class="prices__title">Abonament <span>miesięcznie</span></h3>
+				<ul class="plans" data-reveal="group">
+					{
+						pakiety.map((pakiet) => (
+							<li class="plan">
+								<div class="plan__head">
+									<strong>{pakiet.nazwa}</strong>
+									{pakiet.wyroznienie && (
+										<span class="badge">
+											<Icon name="star" size={13} /> {pakiet.wyroznienie}
+										</span>
+									)}
+								</div>
+								<p class="plan__price">
+									<b>{zl(pakiet.cena)}</b> / mies.
+								</p>
+								<p class="plan__about">{t(pakiet.opis)}</p>
+								<ul class="plan__features">
+									{pakiet.cechy.map((cecha: Cecha) => (
+										<li>
+											<Icon name={cecha.ikona} size={16} />
+											<span>
+												{cecha.przed && t(cecha.przed)} {cecha.mocno && <strong>{cecha.mocno}</strong>} {cecha.po && t(cecha.po)}
+												{cecha.szczegol && <small>{t(cecha.szczegol)}</small>}
+											</span>
+										</li>
+									))}
+								</ul>
+								{/* The button stretches over the whole card, so a click anywhere on it picks the plan. */}
+								<button type="button" class="pick pick--plan" data-pick="abonament" data-name={pakiet.nazwa} data-price={pakiet.cena} aria-pressed="false">
+									<span class="pick__off">
+										Wybierz<span class="sr-only"> abonament {pakiet.nazwa}</span>
+									</span>
+									<span class="pick__on">
+										<Icon name="check" size={15} /> Wybrany<span class="sr-only"> abonament {pakiet.nazwa}</span>
+									</span>
+								</button>
+							</li>
+						))
+					}
+				</ul>
+
+				<div class="included" data-reveal="self">
+					<h3>W&nbsp;każdym pakiecie</h3>
+					<ul class="perks">
+						{wKazdymPakiecie.map((pozycja) => (
+							<li>
+								<span class="perks__icon">
+									<Icon name={pozycja.ikona as 'server'} size={18} />
+								</span>
+								<span>
+									{'url' in pozycja ? (
+										<a href={pozycja.url} target="_blank" rel="noopener">
+											{t(pozycja.nazwa)} <Icon name="external" size={12} />
+										</a>
+									) : (
+										<strong>{t(pozycja.nazwa)}</strong>
+									)}
+									<small>{t(pozycja.szczegol)}</small>
+								</span>
+							</li>
+						))}
+					</ul>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="section section--panel" id="panel" aria-labelledby="panel-h">
+		<Kropki />
+		<div class="wrap section__grid">
+			<header class="section__head">
+				<h2 id="panel-h"><svg class="spark" viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path d="M24 0c2 15 9 22 24 24-15 2-22 9-24 24-2-15-9-22-24-24 15-2 22-9 24-24z" fill="currentColor"></path></svg>Panel klienta</h2>
+				<p>Zmiany na stronie zgłaszasz w&nbsp;panelu, z&nbsp;komputera albo telefonu. Bez maili i&nbsp;bez dzwonienia. Panel jest w&nbsp;cenie każdego abonamentu.</p>
+			</header>
+
+			<div class="tour" data-tour data-reveal="self">
+				{
+					panelKroki.map((krok, nr) => (
+						<div class:list={['tour__item', { 'is-active': nr === 0 }]} style={`--row: ${nr + 2}`}>
+							<div class="tour__tab">
+								<span class="tour__icon">
+									<Icon name={krok.ikona} size={18} />
+								</span>
+								<div>
+									<h3>
+										<button type="button" aria-pressed={nr === 0 ? 'true' : 'false'}>
+											{t(krok.tytul)}
+										</button>
+									</h3>
+									<p>{t(krok.tekst)}</p>
+								</div>
+								<span class="tour__progress" aria-hidden="true"></span>
+							</div>
+							<figure class="tour__shot">
+								<div class="tour__bar" aria-hidden="true">
+									<span></span>
+									<span></span>
+									<span></span>
+								</div>
+								<Image src={krok.obraz} alt={krok.alt} widths={[480, 720, 1080, 1440]} sizes="(min-width: 62rem) 28rem, 23rem" loading="lazy" />
+							</figure>
+						</div>
+					))
+				}
+
+			</div>
+		</div>
+	</section>
+
+	<section class="section" id="pytania" aria-labelledby="pytania-h">
+		<div class="wrap section__grid">
+			<header class="section__head">
+				<h2 id="pytania-h"><svg class="spark" viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path d="M24 0c2 15 9 22 24 24-15 2-22 9-24 24-2-15-9-22-24-24 15-2 22-9 24-24z" fill="currentColor"></path></svg>Pytania</h2>
+			</header>
+
+			<div class="faq" data-reveal="self">
+				{
+					// Each question has its own address (#pytanie-…), so a link can lead straight to one answer.
+					pytania.map((pozycja) => (
+						<details id={`pytanie-${pozycja.id}`}>
+							<summary>{t(pozycja.pytanie)}</summary>
+							{/* A new line in the answer starts a new paragraph. */}
+							{pozycja.odpowiedz.split('\n').map((akapit) => (
+								<p>{t(akapit)}</p>
+							))}
+							{
+								'cennik' in pozycja && (
+									<>
+										<dl class="faq__prices">
+											{pozycja.cennik.map((zmiana) => (
+												<div>
+													<dt>{zmiana.nazwa}</dt>
+													<dd class="faq__price">
+														<b>{zl(zmiana.cena)}</b> netto
+													</dd>
+													<dd>{t(zmiana.opis)}</dd>
+													<dd class="faq__time">
+														<Icon name="clock" size={14} /> albo {zmiana.czas} z&nbsp;pakietu
+													</dd>
+												</div>
+											))}
+										</dl>
+										<p>{t(pozycja.dopisek)}</p>
+									</>
+								)
+							}
+						</details>
+					))
+				}
+			</div>
+		</div>
+	</section>
+
+	<section class="section section--alt" id="kontakt" aria-labelledby="kontakt-h">
+		<div class="wrap section__grid">
+			<header class="section__head">
+				<h2 id="kontakt-h"><svg class="spark" viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path d="M24 0c2 15 9 22 24 24-15 2-22 9-24 24-2-15-9-22-24-24 15-2 22-9 24-24z" fill="currentColor"></path></svg>Kontakt</h2>
+				<p>Wybierz temat i&nbsp;opisz krótko, czego potrzebujesz. Odpowiemy z&nbsp;propozycją i&nbsp;ceną.</p>
+			</header>
+
+			<div class="reach" data-reveal="self">
+				<form class="composer" action={`mailto:${firma.email}`} method="get" data-email={firma.email}>
+					<input type="hidden" name="subject" value="Zapytanie ze strony" />
+
+					<div class="composer__field">
+						<label for="temat">Temat</label>
+						<select id="temat" name="temat">
+							{kontakt.tematy.map((temat) => <option>{temat}</option>)}
+						</select>
+					</div>
+
+					<div class="composer__field composer__field--grow">
+						<label for="wiadomosc">Wiadomość</label>
+						<textarea id="wiadomosc" name="body" rows="4" placeholder="Np. potrzebuję prostej strony z cennikiem i formularzem kontaktowym" required></textarea>
+					</div>
+
+					<div class="composer__foot">
+						<p>Wiadomość otworzy się w&nbsp;Twoim programie pocztowym.</p>
+						<button class="button" type="submit">
+							Wyślij <Icon name="arrow-right" size={17} />
+						</button>
+					</div>
+				</form>
+
+				<div class="contacts">
+					<a class="contact" href={`mailto:${firma.email}`}>
+						<span class="contact__icon"><Icon name="mail" size={19} /></span>
+						<span>
+							<small>E-mail</small>
+							<b>{firma.email}</b>
+						</span>
+					</a>
+					<div class="contact">
+						<span class="contact__icon"><Icon name="clock" size={19} /></span>
+						<span>
+							<small>Odpowiadamy</small>
+							<b>{t(kontakt.odpowiedz)}</b>
+						</span>
+					</div>
+					{
+						panelUrl && (
+							<a class="contact contact--panel" href={panelUrl}>
+								<span class="contact__icon">
+									<Icon name="user" size={19} />
+								</span>
+								<span>
+									<small>Masz już stronę u&nbsp;nas?</small>
+									<b>Zgłoś zmianę w&nbsp;panelu</b>
+								</span>
+							</a>
+						)
+					}
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<script is:inline>
+		// Opens the visitor's mail app with the chosen topic as the subject and their text as the message.
+		// Without JavaScript the form still submits to the same address.
+		document.querySelector('.composer').addEventListener('submit', (event) => {
+			const form = event.currentTarget;
+
+			event.preventDefault();
+			location.href = `mailto:${form.dataset.email}?subject=${encodeURIComponent(`Zapytanie: ${form.elements.temat.value}`)}&body=${encodeURIComponent(form.elements.body.value)}`;
+		});
+	</script>
+	{/* The visitor's choice from the price list, added up; it stays at the bottom of the screen until it is sent or cleared. */}
+	<aside class="basket" aria-label="Twój wybór" data-discount={grafika.rabatZeStrona} data-email={firma.email} hidden>
+		<div class="basket__sums" aria-live="polite">
+			<p data-sum="once">
+				<small>Jednorazowo</small>
+				<span class="basket__value">
+					<b></b> <span class="basket__unit">netto</span>
+				</span>
+				<span class="basket__detail"></span>
+			</p>
+			<p data-sum="monthly">
+				<small>Miesięcznie</small>
+				<span class="basket__value">
+					<b></b> <span class="basket__unit">netto</span>
+				</span>
+				<span class="basket__detail"></span>
+			</p>
+		</div>
+		<div class="basket__actions">
+			<button type="button" class="basket__clear" aria-label="Wyczyść wybór" title="Wyczyść wybór">
+				<Icon name="x" size={16} />
+			</button>
+			<button type="button" class="cta cta--small basket__send">
+				Wyślij zapytanie
+				<span class="cta__arrow"><Icon name="arrow-right" size={15} /></span>
+			</button>
+		</div>
+		<p class="basket__note" role="status" hidden>
+			Gotowa wiadomość otworzyła się w&nbsp;Twoim programie pocztowym. Nie otworzyła się? Napisz na <a href={`mailto:${firma.email}`}>{firma.email}</a>.
+		</p>
+	</aside>
+
+	<script is:inline>
+		// Blocks marked with data-reveal come in once, the first time they are scrolled into view.
+		{
+			const seen = new IntersectionObserver(
+				(entries) =>
+					entries.forEach((entry) => {
+						if (entry.isIntersecting) {
+							entry.target.classList.add('is-in');
+							seen.unobserve(entry.target);
+						}
+					}),
+				{ rootMargin: '0px 0px -12% 0px' },
+			);
+
+			document.querySelectorAll('[data-reveal]').forEach((block) => seen.observe(block));
+		}
+
+		// Cennik: a site, a logo and a plan can be picked, one of each. The choice is added up in a bar
+		// at the bottom of the screen, and from there it is sent as a ready e-mail.
+		{
+			const picks = [...document.querySelectorAll('.pick')];
+			const basket = document.querySelector('.basket');
+			const contact = document.querySelector('#kontakt');
+			const discount = Number(basket.dataset.discount);
+			const money = (amount) => `${String(amount).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0')}\u00a0zł`;
+			const chosen = (group) => picks.find((pick) => pick.dataset.pick === group && pick.getAttribute('aria-pressed') === 'true');
+			let atContact = false;
+
+			// What is picked, with the logo already cheaper when it comes with a site.
+			const choice = () => {
+				const [site, logo, plan] = ['strona', 'logo', 'abonament'].map(chosen);
+				const together = Boolean(site && logo);
+
+				return {
+					site,
+					logo,
+					plan,
+					together,
+					logoPrice: logo ? Number(logo.dataset.price) - (together ? discount : 0) : 0,
+					once: (site ? Number(site.dataset.price) : 0) + (logo ? Number(logo.dataset.price) - (together ? discount : 0) : 0),
+				};
+			};
+
+			const render = () => {
+				const { site, logo, plan, together, once } = choice();
+				const [onceLine, monthlyLine] = basket.querySelectorAll('[data-sum]');
+
+				picks.forEach((pick) => pick.closest('li').classList.toggle('is-picked', pick.getAttribute('aria-pressed') === 'true'));
+
+				// Both sums always have their place, so the bar keeps its shape; an empty one says what to pick.
+				const fill = (line, filled, value, detail) => {
+					line.classList.toggle('is-empty', !filled);
+					line.querySelector('b').textContent = filled ? value : '—';
+					line.querySelector('.basket__detail').textContent = detail;
+					line.querySelector('.basket__detail').title = filled ? detail : '';
+				};
+
+				fill(
+					onceLine,
+					site || logo,
+					money(once),
+					// With a site but no logo, the detail reminds that a logo ordered with it is cheaper.
+					site || logo
+						? [site, logo].filter(Boolean).map((pick) => pick.dataset.name).join(' + ') + (together ? ` · rabat ${money(discount)}` : site ? ` · dodaj logo ${money(discount)} taniej` : '')
+						: 'Wybierz stronę lub logo',
+				);
+				fill(monthlyLine, plan, plan ? money(Number(plan.dataset.price)) : '', plan ? `Abonament ${plan.dataset.name}` : 'Wybierz abonament');
+
+				basket.hidden = atContact || !(site || logo || plan);
+			};
+
+			const note = basket.querySelector('.basket__note');
+
+			picks.forEach((pick) =>
+				pick.addEventListener('click', () => {
+					const on = pick.getAttribute('aria-pressed') !== 'true';
+
+					// One of each kind; a second click on the same one takes it back.
+					picks.filter((other) => other.dataset.pick === pick.dataset.pick).forEach((other) => other.setAttribute('aria-pressed', 'false'));
+					pick.setAttribute('aria-pressed', String(on));
+					note.hidden = true;
+					render();
+				}),
+			);
+
+			basket.querySelector('.basket__clear').addEventListener('click', () => {
+				picks.forEach((pick) => pick.setAttribute('aria-pressed', 'false'));
+				note.hidden = true;
+				render();
+			});
+
+			basket.querySelector('.basket__send').addEventListener('click', () => {
+				const { site, logo, plan, together, logoPrice, once } = choice();
+				const plain = (amount) => money(amount).replaceAll('\u00a0', ' ');
+				const parts = [
+					site && `${site.dataset.name} (${plain(Number(site.dataset.price))})`,
+					logo && `${logo.dataset.name} (${plain(logoPrice)}${together ? ` po rabacie ${plain(discount)}` : ''})`,
+					plan && `abonament ${plan.dataset.name} (${plain(Number(plan.dataset.price))} miesięcznie)`,
+				].filter(Boolean);
+				const message = `Dzień dobry,\n\ninteresuje mnie: ${parts.join(', ')}.${site || logo ? `\nRazem jednorazowo ${plain(once)} netto.` : ''}\n\n`;
+
+				// The question goes out straight from the bar, as a ready e-mail; the note says what happened and what to do if nothing opened.
+				location.href = `mailto:${basket.dataset.email}?subject=${encodeURIComponent('Zapytanie o ofertę')}&body=${encodeURIComponent(message)}`;
+				note.hidden = false;
+			});
+
+			// Over the contact section the bar would cover the field it has just filled.
+			new IntersectionObserver(([entry]) => ((atContact = entry.isIntersecting), render()), { threshold: 0.25 }).observe(contact);
+
+			// The marks to tick appear only now, when picking really works.
+			document.documentElement.dataset.picker = '';
+		}
+
+		// Realizacje: the arrows move the row by one card, and the row goes round in a loop.
+		// A copy of the works stands before and after the real ones; whenever the row comes to rest
+		// on a copy, it is put back on the same card among the real ones, which looks no different.
+		document.querySelectorAll('[data-carousel]').forEach((carousel) => {
+			const row = carousel.querySelector('.works');
+			const [prev, next] = carousel.querySelectorAll('.carousel__button');
+			const calm = matchMedia('(prefers-reduced-motion: reduce)');
+			const originals = [...row.children];
+			const copy = (work) => {
+				const clone = work.cloneNode(true);
+
+				clone.setAttribute('aria-hidden', 'true');
+				clone.querySelectorAll('a').forEach((link) => (link.tabIndex = -1));
+				clone.querySelectorAll('img').forEach((image) => (image.alt = ''));
+
+				return clone;
+			};
+
+			row.prepend(...originals.map(copy));
+			row.append(...originals.map(copy));
+
+			const step = () => originals[0].getBoundingClientRect().width + parseFloat(getComputedStyle(row).columnGap);
+			const settle = () => {
+				const set = step() * originals.length;
+
+				if (row.scrollLeft < set - 2) {
+					row.scrollLeft += set;
+				} else if (row.scrollLeft >= 2 * set - 2) {
+					row.scrollLeft -= set;
+				}
+			};
+			const move = (direction) => row.scrollBy({ left: direction * step(), behavior: calm.matches ? 'auto' : 'smooth' });
+			let resting = null;
+
+			prev.addEventListener('click', () => move(-1));
+			next.addEventListener('click', () => move(1));
+			row.addEventListener(
+				'scroll',
+				() => {
+					clearTimeout(resting);
+					resting = setTimeout(settle, 140);
+				},
+				{ passive: true },
+			);
+			addEventListener('resize', settle);
+
+			// Start on the first real work. Without the script the row is simply scrolled by hand, so the arrows appear only now.
+			row.scrollLeft = step() * originals.length;
+			prev.hidden = next.hidden = false;
+		});
+
+		// Panel klienta: choosing a point on the left shows its fragment of the panel on the right.
+		// Left alone, the section moves to the next point every few seconds.
+		// Pytania: a link to one question opens its answer.
+		{
+			const openAsked = () => {
+				const asked = location.hash.startsWith('#pytanie-') && document.getElementById(location.hash.slice(1));
+
+				if (asked) {
+					asked.open = true;
+				}
+			};
+
+			openAsked();
+			addEventListener('hashchange', openAsked);
+		}
+
+		document.querySelectorAll('[data-tour]').forEach((tour) => {
+			const items = [...tour.querySelectorAll('.tour__item')];
+			const wide = matchMedia('(min-width: 62.01rem)');
+			const calm = matchMedia('(prefers-reduced-motion: reduce)');
+			const pause = 4000;
+			let timer = null;
+			let visible = false;
+			let held = false;
+			let stopped = false;
+
+			const select = (chosen) =>
+				items.forEach((item) => {
+					item.classList.toggle('is-active', item === chosen);
+					item.querySelector('button').setAttribute('aria-pressed', String(item === chosen));
+				});
+
+			const schedule = () => {
+				clearTimeout(timer);
+
+				const running = visible && !held && !stopped && wide.matches && !calm.matches && !document.hidden;
+
+				tour.toggleAttribute('data-tour-running', running);
+
+				if (running) {
+					timer = setTimeout(() => {
+						select(items[(items.findIndex((item) => item.classList.contains('is-active')) + 1) % items.length]);
+						schedule();
+					}, pause);
+				}
+			};
+
+			items.forEach((item) => {
+				// A click is a decision: the section stays on that point for good.
+				item.querySelector('button').addEventListener('click', () => {
+					stopped = true;
+					select(item);
+					schedule();
+				});
+				item.querySelector('.tour__tab').addEventListener('mouseenter', () => {
+					select(item);
+					schedule();
+				});
+			});
+
+			// Reading or tabbing through the section holds it in place.
+			tour.addEventListener('mouseenter', () => ((held = true), schedule()));
+			tour.addEventListener('mouseleave', () => ((held = false), schedule()));
+			tour.addEventListener('focusin', () => ((held = true), schedule()));
+			tour.addEventListener('focusout', () => ((held = false), schedule()));
+
+			new IntersectionObserver(([entry]) => ((visible = entry.isIntersecting), schedule()), { threshold: 0.4 }).observe(tour);
+			wide.addEventListener('change', schedule);
+			calm.addEventListener('change', schedule);
+			document.addEventListener('visibilitychange', schedule);
+
+			tour.style.setProperty('--tour-pause', `${pause}ms`);
+			// Without the script every point simply keeps its picture below it.
+			tour.dataset.tourReady = '';
+		});
+
+		// The second sentence of the headline is deleted and typed again every few seconds, like on a typewriter.
+		document.querySelectorAll('[data-swap]').forEach((swap) => {
+			const items = [...swap.querySelectorAll('.swap__item')];
+			const calm = matchMedia('(prefers-reduced-motion: reduce)');
+			const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+			const parts = (item) => [...item.querySelectorAll('.swap__part')];
+			const texts = items.map((item) => parts(item).map((part) => part.textContent.trim()));
+			const caret = (part) => {
+				swap.querySelectorAll('[data-caret]').forEach((other) => other.removeAttribute('data-caret'));
+				part.setAttribute('data-caret', '');
+			};
+			let current = 0;
+
+			(async () => {
+				while (true) {
+					await wait(2600);
+
+					// Nothing moves for people who asked for less motion, in a hidden tab, or under the cursor.
+					if (calm.matches || document.hidden || swap.matches(':hover')) {
+						continue;
+					}
+
+					swap.setAttribute('data-typing', '');
+
+					// Delete from the end, line by line.
+					for (const part of parts(items[current]).reverse()) {
+						caret(part);
+
+						while (part.textContent.length > 0) {
+							part.textContent = part.textContent.slice(0, -1);
+							await wait(28);
+						}
+					}
+
+					items[current].classList.remove('is-active');
+					parts(items[current]).forEach((part, nr) => (part.textContent = texts[current][nr]));
+					current = (current + 1) % items.length;
+
+					// Type the next one, line by line.
+					const next = parts(items[current]);
+
+					next.forEach((part) => (part.textContent = ''));
+					items[current].classList.add('is-active');
+
+					for (const [nr, part] of next.entries()) {
+						caret(part);
+
+						for (const letter of texts[current][nr]) {
+							part.textContent += letter;
+							await wait(52);
+						}
+					}
+
+					swap.removeAttribute('data-typing');
+				}
+			})();
+		});
+	</script>
+</Layout>

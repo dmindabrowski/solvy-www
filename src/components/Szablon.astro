@@ -1,0 +1,59 @@
+---
+// A page template in a browser window: the kind of site we build, reduced to its blocks.
+// Each block is one step (--i), so the page can assemble itself in order when it comes into view.
+const karty = [24, 172, 320];
+---
+
+<figure class="mock" data-reveal="mock">
+	<svg class="mock__page" viewBox="0 0 480 412" role="img" aria-label="Szablon strony firmowej w oknie przeglądarki: menu, hasło z przyciskiem, zdjęcie, trzy kafelki oferty i stopka.">
+		<g class="m-step" style="--i: 0">
+			<g class="m-line">
+				<path d="M0 40h480"></path>
+				<circle cx="22" cy="20" r="4.5"></circle>
+				<circle cx="38" cy="20" r="4.5"></circle>
+				<circle cx="54" cy="20" r="4.5"></circle>
+				<rect x="84" y="10" width="312" height="20" rx="10"></rect>
+			</g>
+			<text class="m-address" x="104" y="24">twojafirma.pl</text>
+		</g>
+
+		<g class="m-step" style="--i: 1">
+			<g class="m-line">
+				<path d="M0 80h480M300 60h30M344 60h30"></path>
+				<rect x="392" y="50" width="64" height="20" rx="10"></rect>
+			</g>
+			<path class="m-logo" d="M34 48c1 7.500 4.500 11 12 12-7.500 1-11 4.500-12 12-1-7.500-4.500-11-12-12 7.500-1 11-4.500 12-12z"></path>
+		</g>
+
+		<g class="m-step" style="--i: 2">
+			<path class="m-head" d="M30 116h190M30 140h134"></path>
+		</g>
+
+		<g class="m-step m-line" style="--i: 3">
+			<path d="M24 168h222M24 182h176"></path>
+		</g>
+
+		<g class="m-step" style="--i: 4">
+			<rect class="m-button" x="24" y="200" width="92" height="26" rx="13"></rect>
+		</g>
+
+		<g class="m-step m-line" style="--i: 5">
+			<rect x="282" y="104" width="174" height="122" rx="6"></rect>
+			<path d="M282 226l58-52 38 32 28-20 50 40"></path>
+			<circle cx="420" cy="134" r="10"></circle>
+		</g>
+
+		{
+			karty.map((x, nr) => (
+				<g class="m-step m-line" style={`--i: ${6 + nr}`}>
+					<rect x={x} y="252" width="136" height="86" rx="6" />
+					<path d={`M${x + 16} 276h46M${x + 16} 300h100M${x + 16} 314h76`} />
+				</g>
+			))
+		}
+
+		<g class="m-step m-line" style="--i: 9">
+			<path d="M0 360h480M24 380h76M24 394h120M360 380h96"></path>
+		</g>
+	</svg>
+</figure>

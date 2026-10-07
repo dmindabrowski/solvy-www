@@ -1,0 +1,25 @@
+---
+// A corner of dots for a blue section: the dots sit on an even grid, are largest in the top right
+// corner and shrink with every step away from it, until they are gone.
+const szerokosc = 720;
+const wysokosc = 480;
+const odstep = 24;
+const najwieksza = 3.4;
+
+const kropki: { x: number; y: number; r: number }[] = [];
+
+for (let y = odstep / 2; y < wysokosc; y += odstep) {
+	for (let x = szerokosc - odstep / 2; x > 0; x -= odstep) {
+		const odleglosc = Math.hypot((szerokosc - x) / szerokosc, y / wysokosc);
+		const r = Math.round(najwieksza * Math.pow(Math.max(0, 1 - odleglosc), 1.25) * 10) / 10;
+
+		if (r >= 0.4) {
+			kropki.push({ x, y, r });
+		}
+	}
+}
+---
+
+<svg class="dots" viewBox={`0 0 ${szerokosc} ${wysokosc}`} aria-hidden="true">
+	{kropki.map((kropka) => <circle cx={kropka.x} cy={kropka.y} r={kropka.r} />)}
+</svg>

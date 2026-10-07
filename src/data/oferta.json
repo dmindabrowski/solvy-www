@@ -1,0 +1,319 @@
+{
+	"firma": {
+		"nazwa": "Solvy",
+		"email": "kontakt@solvy.pl",
+		"panelUrl": "https://panel.solvy.pl",
+		"opis": "Strony internetowe dla małych firm: budowa, utrzymanie i zmiany w stałym abonamencie.",
+		"adres": {
+			"ulica": "Dywizjonu AK Jeleń 6/25",
+			"kod": "00-712",
+			"miasto": "Warszawa"
+		},
+		"nazwaPelna": "Solvy Damian Dąbrowski",
+		"nip": "000-000-00-00"
+	},
+	"budowa": [
+		{
+			"nazwa": "Wizytówka",
+			"cena": 1490,
+			"zakres": "Jedna strona, do 6 sekcji",
+			"wyroznienie": ""
+		},
+		{
+			"nazwa": "Strona firmowa",
+			"cena": 2490,
+			"zakres": "Do 6 podstron",
+			"wyroznienie": "Bestseller"
+		},
+		{
+			"nazwa": "Strona rozbudowana",
+			"cena": 5990,
+			"zakres": "Do 15 podstron i aktualności",
+			"wyroznienie": ""
+		}
+	],
+	"grafika": {
+		"przyklad": "/realizacje/inzynieria-sanitarna/ksiega-znaku.pdf",
+		"warianty": [
+			{
+				"nazwa": "Logo",
+				"cena": 790,
+				"zakres": "3 propozycje do wyboru, pliki do internetu i druku, przeniesienie praw autorskich"
+			},
+			{
+				"nazwa": "Logo z księgą znaku",
+				"cena": 1290,
+				"zakres": "To samo oraz księga znaku: kolory, pismo i zasady użycia"
+			}
+		],
+		"rabatZeStrona": 200
+	},
+	"pakiety": [
+		{
+			"nazwa": "Hosting",
+			"cena": 99,
+			"cechy": [
+				{
+					"ikona": "calendar",
+					"przed": "Realizacja zgłoszenia do",
+					"mocno": "5 dni roboczych"
+				},
+				{
+					"ikona": "receipt",
+					"mocno": "40 zł",
+					"po": "za drobną zmianę"
+				}
+			],
+			"opis": "Zapewniamy pełne utrzymanie strony.\nZmiany płatne według cennika."
+		},
+		{
+			"nazwa": "Opieka",
+			"wyroznienie": "Bestseller",
+			"cena": 139,
+			"cechy": [
+				{
+					"ikona": "calendar",
+					"przed": "Realizacja zgłoszenia do",
+					"mocno": "3 dni roboczych"
+				},
+				{
+					"ikona": "clock",
+					"mocno": "30 min",
+					"po": "na zmiany w każdym miesiącu",
+					"szczegol": "to np. 2 drobne zmiany"
+				},
+				{
+					"ikona": "progress",
+					"przed": "Niewykorzystany czas przechodzi na jeden następny miesiąc"
+				}
+			],
+			"opis": "Bieżące aktualizacje strony w stałej opłacie abonamentowej."
+		},
+		{
+			"nazwa": "Premium",
+			"cena": 299,
+			"cechy": [
+				{
+					"ikona": "calendar",
+					"przed": "Realizacja zgłoszenia do",
+					"mocno": "1 dnia roboczego"
+				},
+				{
+					"ikona": "clock",
+					"mocno": "2 h",
+					"po": "na zmiany w każdym miesiącu",
+					"szczegol": "to np. 8 drobnych zmian"
+				},
+				{
+					"ikona": "progress",
+					"przed": "Niewykorzystany czas przechodzi na jeden następny miesiąc"
+				}
+			],
+			"opis": "Dla firm, które regularnie rozbudowują stronę i potrzebują szybkiej realizacji."
+		}
+	],
+	"wKazdymPakiecie": [
+		{
+			"ikona": "server",
+			"nazwa": "Hosting strony",
+			"szczegol": "serwer i utrzymanie w cenie"
+		},
+		{
+			"ikona": "globe",
+			"nazwa": "Domena",
+			"szczegol": "do 100 zł netto rocznie"
+		},
+		{
+			"ikona": "lock",
+			"nazwa": "Certyfikat SSL",
+			"szczegol": "szyfrowane połączenie (https)"
+		},
+		{
+			"ikona": "archive",
+			"nazwa": "Kopie zapasowe",
+			"szczegol": "na wypadek awarii"
+		},
+		{
+			"ikona": "progress",
+			"nazwa": "Aktualizacje techniczne",
+			"szczegol": "dbamy o sprawne działanie"
+		},
+		{
+			"ikona": "chart",
+			"nazwa": "Statystyki odwiedzin",
+			"szczegol": "liczba wizyt i źródła wejść"
+		},
+		{
+			"ikona": "message",
+			"nazwa": "Panel klienta",
+			"szczegol": "zgłaszanie zmian online"
+		},
+		{
+			"ikona": "accessibility",
+			"nazwa": "Dostępność WCAG 2.1",
+			"szczegol": "zgodność ze standardem",
+			"url": "https://www.gov.pl/web/dostepnosc-cyfrowa/wcag-21-w-skrocie"
+		}
+	],
+	"pytania": [
+		{
+			"id": "abonament",
+			"pytanie": "Po co abonament, skoro płacę za budowę strony?",
+			"odpowiedz": "Budowa to jednorazowa praca nad projektem. Abonament pokrywa wszystko, czego strona potrzebuje później, miesiąc po miesiącu: serwer, domenę, certyfikat SSL, kopie zapasowe i aktualizacje techniczne. Każda strona ponosi te koszty, zwykle u kilku różnych dostawców. Tutaj mieszczą się w jednej stałej opłacie.\nW cenie zawiera się także dostęp do statystyk odwiedzin oraz panel klienta do zgłaszania zmian. Dodatkowo pakiety Opieka i Premium obejmują także czas na pracę nad stroną i wszelkie zmiany."
+		},
+		{
+			"id": "umowa",
+			"pytanie": "Na jak długo jest umowa i co potem?",
+			"odpowiedz": "Na 12 miesięcy, z ceną abonamentu gwarantowaną przez cały ten okres. Po tym czasie można kontynuować współpracę albo ją zakończyć i przenieść stronę w inne miejsce."
+		},
+		{
+			"id": "wlasnosc",
+			"pytanie": "Czy strona będzie moja?",
+			"odpowiedz": "Tak. Domenę rejestrujemy na firmę klienta, a po zakończeniu umowy przekazujemy kod strony, którą można przenieść w dowolne miejsce."
+		},
+		{
+			"id": "drobna-zmiana",
+			"pytanie": "Co to jest drobna zmiana?",
+			"odpowiedz": "Podmiana tekstu, zdjęcia, ceny albo godzin otwarcia, czyli praca do 15 minut. Większe zmiany też mają stałe ceny:",
+			"cennik": [
+				{
+					"nazwa": "Drobna zmiana",
+					"opis": "tekst, zdjęcie, cena, godziny otwarcia",
+					"cena": 40,
+					"czas": "15 min"
+				},
+				{
+					"nazwa": "Średnia zmiana",
+					"opis": "nowa sekcja, galeria, przebudowa bloku",
+					"cena": 150,
+					"czas": "1 h"
+				},
+				{
+					"nazwa": "Duża zmiana",
+					"opis": "nowa podstrona z treścią i zdjęciami",
+					"cena": 300,
+					"czas": "2 h"
+				}
+			],
+			"dopisek": "W pakietach Opieka i Premium zmiana zużywa czas z pakietu i nie jest osobno płatna, dopóki się w nim mieści."
+		},
+		{
+			"id": "poza-pakietem",
+			"pytanie": "Co, jeśli zmiana nie mieści się w pakiecie?",
+			"odpowiedz": "Wycena pojawia się w panelu i czeka na akceptację. Bez zgody klienta nic nie naliczamy."
+		},
+		{
+			"id": "sklepy",
+			"pytanie": "Czy budujecie sklepy internetowe?",
+			"odpowiedz": "Nie."
+		}
+	],
+	"etapy": [
+		{
+			"tytul": "Rozmowa i wycena",
+			"czas": "1–2 dni",
+			"tekst": "Opowiadasz o firmie i o tym, do czego ma służyć strona. Dostajesz cenę i termin."
+		},
+		{
+			"tytul": "Projekt",
+			"czas": "1 tydzień",
+			"tekst": "Budujemy stronę z Twoich tekstów i zdjęć. Oglądasz ją przed publikacją i zgłaszasz poprawki."
+		},
+		{
+			"tytul": "Uruchomienie",
+			"czas": "1 dzień",
+			"tekst": "Podpinamy domenę i certyfikat SSL. Strona trafia do sieci."
+		},
+		{
+			"tytul": "Opieka",
+			"czas": "na bieżąco",
+			"tekst": "Dostajesz dostęp do panelu. Każdą zmianę zgłaszasz tam i z góry znasz jej koszt."
+		}
+	],
+	"realizacje": [
+		{
+			"nazwa": "Inżynieria Sanitarna",
+			"rodzaj": "Strona firmowa i logo",
+			"opis": "Firma projektowo-wykonawcza z Ełku. Projektuje i wykonuje instalacje wod-kan, ogrzewania, wentylacji i gazu.",
+			"obraz": "kozicki",
+			"url": "https://dmindabrowski.github.io/instalacje-sanitarne-karol-kozicki/",
+			"ksiega": "/realizacje/inzynieria-sanitarna/ksiega-znaku.pdf",
+			"alt": "Strona główna firmy Inżynieria Sanitarna: hasło „Instalacje sanitarne. Od projektu po wykonanie.” i schemat instalacji w domu jednorodzinnym.",
+			"uwaga": ""
+		},
+		{
+			"nazwa": "Kącik Gier Jasia",
+			"rodzaj": "Aplikacja internetowa",
+			"opis": "Puzzle, memo i proste gry dla małych dzieci, układane z własnych zdjęć. Działa na tablecie, bez instalowania.",
+			"obraz": "gry",
+			"url": "https://dmindabrowski.github.io/kids-games/",
+			"ksiega": "",
+			"alt": "Ekran główny aplikacji Kącik Gier Jasia: pytanie „W co dziś gramy?” i cztery kolorowe kafelki z grami Puzzle, Memo, Liczby i Ślad.",
+			"uwaga": ""
+		},
+		{
+			"nazwa": "Goalkeeper Timer",
+			"rodzaj": "Aplikacja internetowa",
+			"opis": "Stoper do zmian bramkarza: odlicza czas zmiany, daje sygnał przed jej końcem i pokazuje ten sam zegar na telefonach innych osób.",
+			"obraz": "timer",
+			"url": "https://dmindabrowski.github.io/goalkeeper-timer/",
+			"ksiega": "",
+			"alt": "Aplikacja Goalkeeper Timer: duży zielony zegar ustawiony na 5 minut i przyciski Start, Reset oraz Następna zmiana.",
+			"uwaga": ""
+		},
+		{
+			"nazwa": "ddabrowski.pl",
+			"rodzaj": "Strona osobista",
+			"opis": "Wizytówka product managera i projektanta: kompetencje, doświadczenie, realizacje i kontakt.",
+			"obraz": "ddabrowski",
+			"url": "https://ddabrowski.pl",
+			"ksiega": "",
+			"alt": "Strona główna ddabrowski.pl: nazwisko, krótki opis i przyciski kontaktu na jasnym tle.",
+			"uwaga": ""
+		}
+	],
+	"hasla": [
+		[
+			"Od projektu",
+			"po opiekę."
+		],
+		[
+			"Gotowe",
+			"w dwa tygodnie."
+		],
+		[
+			"Zawsze",
+			"w stałej cenie."
+		],
+		[
+			"Zmiany",
+			"w kilka dni."
+		],
+		[
+			"Zawsze",
+			"aktualne."
+		],
+		[
+			"Z opieką",
+			"co miesiąc."
+		],
+		[
+			"Proste",
+			"w obsłudze."
+		],
+		[
+			"Twoje",
+			"na własność."
+		]
+	],
+	"kontakt": {
+		"tematy": [
+			"Strona internetowa",
+			"Logo",
+			"Strona i logo",
+			"Zmiany na mojej stronie",
+			"Inne pytanie"
+		],
+		"odpowiedz": "W ciągu 1–2 dni roboczych"
+	}
+}

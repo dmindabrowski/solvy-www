@@ -1,0 +1,2812 @@
+/* solvy.pl */
+
+@font-face {
+	font-family: 'Inter';
+	src: url('/fonts/inter.woff2') format('woff2');
+	font-weight: 400 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Warm paper background with white cards; blue is an accent only. */
+:root {
+	color-scheme: light;
+
+	--bg: #f6f5f1;
+	--bg-alt: #efede7;
+	--surface: #ffffff;
+	--ink: #14161a;
+	--ink-2: #4a4f58;
+	--ink-3: #6b717c;
+	--line: #dddbd3;
+	--line-strong: #c9c6bb;
+	--accent: #1d4ed8;
+	--accent-solid: #1d4ed8;
+	--accent-solid-hover: #1e40af;
+	--accent-soft: #e3e9fb;
+	--badge-bg: #fef3c7;
+	--badge-ink: #92400e;
+	--shadow: 0 1px 2px rgb(20 22 26 / 0.05), 0 12px 32px -14px rgb(20 22 26 / 0.2);
+
+	--font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--radius: 14px;
+	--gutter: clamp(1rem, 4vw, 2rem);
+}
+
+/* Dark values are declared twice: for the system setting and for the switch in the header, which wins both ways. */
+@media (prefers-color-scheme: dark) {
+	:root:where(:not([data-theme='light'])) {
+		color-scheme: dark;
+
+		--bg: #0f1115;
+		--bg-alt: #14171c;
+		--surface: #191c22;
+		--ink: #eceae4;
+		--ink-2: #b9bcc4;
+		--ink-3: #9a9fa9;
+		--line: #2a2e37;
+		--line-strong: #3b404b;
+		--accent: #8ea2ff;
+		--accent-solid: #2563eb;
+		--accent-solid-hover: #3b82f6;
+		--accent-soft: #1c2444;
+		--badge-bg: #3b2a0a;
+		--badge-ink: #fcd34d;
+		--shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 36px -14px rgb(0 0 0 / 0.7);
+	}
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+
+	--bg: #0f1115;
+	--bg-alt: #14171c;
+	--surface: #191c22;
+	--ink: #eceae4;
+	--ink-2: #b9bcc4;
+	--ink-3: #9a9fa9;
+	--line: #2a2e37;
+	--line-strong: #3b404b;
+	--accent: #8ea2ff;
+	--accent-solid: #2563eb;
+	--accent-solid-hover: #3b82f6;
+	--accent-soft: #1c2444;
+	--badge-bg: #3b2a0a;
+	--badge-ink: #fcd34d;
+	--shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 36px -14px rgb(0 0 0 / 0.7);
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+	scroll-padding-top: 4.5rem;
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--ink);
+	font-family: var(--font);
+	font-size: 1rem;
+	line-height: 1.55;
+	-webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+	margin: 0;
+	line-height: 1.15;
+	letter-spacing: -0.02em;
+	text-wrap: balance;
+}
+
+h1 {
+	font-size: clamp(1.75rem, 3.6vw, 2.4rem);
+	font-weight: 700;
+	letter-spacing: -0.035em;
+}
+
+h2 {
+	font-size: clamp(1.35rem, 2.4vw, 1.6rem);
+	font-weight: 700;
+}
+
+h3 {
+	font-size: 1rem;
+	font-weight: 650;
+	letter-spacing: -0.01em;
+}
+
+p {
+	margin: 0;
+}
+
+a {
+	color: var(--accent);
+	text-underline-offset: 0.18em;
+}
+
+img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+
+:focus-visible {
+	outline: 3px solid color-mix(in oklab, var(--accent) 60%, transparent);
+	outline-offset: 2px;
+	border-radius: 6px;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.skip-link {
+	position: absolute;
+	top: 0.5rem;
+	left: 0.5rem;
+	z-index: 20;
+	padding: 0.5rem 0.9rem;
+	border-radius: 8px;
+	background: var(--ink);
+	color: var(--bg);
+	transform: translateY(-200%);
+}
+
+.skip-link:focus {
+	transform: none;
+}
+
+.wrap {
+	width: min(100% - 2 * var(--gutter), 64rem);
+	margin-inline: auto;
+}
+
+/* Header */
+.top {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	border-bottom: 1px solid var(--line);
+	background: color-mix(in srgb, var(--bg) 88%, transparent);
+	backdrop-filter: saturate(1.6) blur(12px);
+}
+
+.top__row {
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+	min-height: 3.5rem;
+}
+
+.brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	color: var(--ink);
+	font-size: 1.15rem;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	text-decoration: none;
+}
+
+.brand__mark {
+	width: 26px;
+	height: 26px;
+}
+
+.top__nav {
+	display: flex;
+	gap: 0.15rem;
+	margin-left: auto;
+}
+
+.top__nav a,
+.top__link {
+	padding: 0.35rem 0.65rem;
+	border-radius: 999px;
+	color: var(--ink-2);
+	font-size: 0.92rem;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.top__nav a:hover,
+.top__link:hover {
+	background: var(--bg-alt);
+	color: var(--ink);
+}
+
+.top__actions {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding-left: 0.75rem;
+	border-left: 1px solid var(--line);
+}
+
+.top__link--panel {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.top__link--panel .icon {
+	color: var(--accent);
+}
+
+/* Section links for phones and tablets, where the header menu is hidden. Scrolls away with the page. */
+.subnav {
+	display: none;
+	border-bottom: 1px solid var(--line);
+}
+
+.subnav .wrap {
+	display: flex;
+	gap: 0.15rem;
+	padding-block: 0.35rem;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.subnav a {
+	flex: none;
+	padding: 0.3rem 0.6rem;
+	border-radius: 999px;
+	color: var(--ink-2);
+	font-size: 0.88rem;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.subnav a:first-child {
+	margin-left: -0.6rem;
+}
+
+/* Buttons */
+.button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 2.75rem;
+	padding: 0.5rem 1.3rem;
+	border: 1px solid var(--accent-solid);
+	border-radius: 999px;
+	background: var(--accent-solid);
+	color: #ffffff;
+	font: inherit;
+	font-weight: 600;
+	text-decoration: none;
+	cursor: pointer;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.button:hover {
+	border-color: var(--accent-solid-hover);
+	background: var(--accent-solid-hover);
+}
+
+.button--secondary {
+	border-color: var(--line);
+	background: var(--surface);
+	color: var(--ink);
+}
+
+.button--secondary:hover {
+	border-color: var(--ink-3);
+	background: var(--surface);
+}
+
+.button--small {
+	min-height: 2.25rem;
+	padding: 0.3rem 0.95rem;
+	font-size: 0.92rem;
+}
+
+/* Hero: the claim on the left, a page template on the right, on the blue gradient of the client panel. */
+.hero {
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+	padding-block: clamp(2.5rem, 6vw, 4.5rem);
+	background: linear-gradient(160deg, #1d4ed8, color-mix(in oklab, #1d4ed8, black 38%));
+	color: #ffffff;
+}
+
+/* On a wide screen the top section fills most of the first screen, with its content centred, and
+   leaves the next heading showing below so the page does not look finished. On very tall screens it stops growing. */
+@media (min-width: 62.01rem) {
+	.hero {
+		display: grid;
+		align-content: center;
+		min-height: min(86vh - 3.5rem, 53rem);
+		min-height: min(86svh - 3.5rem, 53rem);
+	}
+}
+
+/* The dots from the Panel klienta section, here in the bottom right corner behind the picture.
+   The drawing starts in its top right corner, so it is turned upside down. */
+.hero .dots {
+	top: auto;
+	bottom: 0;
+	scale: 1 -1;
+}
+
+.hero__grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+	align-items: center;
+	gap: clamp(2rem, 4.5vw, 3.5rem);
+}
+
+.hero__text {
+	display: grid;
+	justify-items: start;
+}
+
+.hero h1 {
+	font-size: clamp(2.1rem, 4.7vw, 3.3rem);
+	line-height: 1.08;
+	text-wrap: wrap;
+}
+
+/* The second sentence of the headline steps back, so the first one reads as the name of the service.
+   All its versions share one grid cell, so the headline keeps the height of the longest one. */
+.swap {
+	display: grid;
+	color: rgb(255 255 255 / 0.62);
+}
+
+.swap__item {
+	grid-area: 1 / 1;
+	visibility: hidden;
+}
+
+.swap__item.is-active {
+	visibility: visible;
+}
+
+/* The sentence is deleted and typed again, with a caret after the last letter. */
+
+/* Positioned out of the flow, so the caret never changes the height of the line. */
+.swap__part[data-caret]::after {
+	content: '';
+	position: absolute;
+	bottom: 0.16em;
+	left: calc(100% + 0.06em);
+	width: 0.06em;
+	height: 0.8em;
+	background: currentColor;
+	animation: swap-caret 1s steps(1) infinite;
+}
+
+/* The caret blinks only while nothing is being typed. */
+.swap[data-typing] .swap__part[data-caret]::after {
+	animation: none;
+}
+
+@keyframes swap-caret {
+	50% {
+		opacity: 0;
+	}
+}
+
+.swap__part {
+	position: relative;
+	display: inline-block;
+	min-width: 1px;
+	min-height: 1.08em;
+	vertical-align: top;
+}
+
+@media (min-width: 62.01rem) {
+	/* Each part on its own line, only as wide as its text, so the caret stays next to the last letter. */
+	.swap__part {
+		display: block;
+		width: fit-content;
+	}
+}
+
+/* In one column every version has to fit on a single line, or the shorter ones would leave a gap below. */
+@media (max-width: 62rem) {
+	.swap {
+		font-size: min(1em, 7.5vw);
+		white-space: nowrap;
+	}
+}
+
+.lead {
+	max-width: 27rem;
+	margin-top: 1.35rem;
+	color: rgb(255 255 255 / 0.86);
+	font-size: 1.05rem;
+}
+
+/* Header action: a pill with the arrow in its own circle */
+.cta {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.9rem;
+	padding: 0.35rem 0.35rem 0.35rem 1.4rem;
+	border-radius: 999px;
+	background: var(--accent-solid);
+	color: #ffffff;
+	font-size: 1.05rem;
+	font-weight: 600;
+	text-decoration: none;
+	box-shadow: 0 8px 20px -10px var(--accent-solid);
+	transition: background-color 0.15s ease;
+}
+
+.cta:hover {
+	background: var(--accent-solid-hover);
+}
+
+.cta__arrow {
+	display: grid;
+	place-items: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: 50%;
+	background: #ffffff;
+	color: #1d4ed8;
+	transition: transform 0.15s ease;
+}
+
+.cta:hover .cta__arrow {
+	transform: translateX(3px);
+}
+
+.hero__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.6rem 0.75rem;
+	margin-top: 1.9rem;
+}
+
+/* On the gradient the main button is white and the second one an outline. */
+.hero .cta {
+	background: #ffffff;
+	color: #1d4ed8;
+	box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.55);
+}
+
+.hero .cta:hover {
+	background: #eef2ff;
+}
+
+.hero .cta__arrow {
+	background: #1d4ed8;
+	color: #ffffff;
+}
+
+.cta-ghost {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 3.2rem;
+	padding: 0.35rem 1.4rem;
+	border: 1px solid rgb(255 255 255 / 0.45);
+	border-radius: 999px;
+	color: #ffffff;
+	font-size: 1.05rem;
+	font-weight: 600;
+	text-decoration: none;
+	white-space: nowrap;
+	transition:
+		border-color 0.15s ease,
+		background-color 0.15s ease;
+}
+
+.cta-ghost:hover {
+	border-color: #ffffff;
+	background: rgb(255 255 255 / 0.1);
+}
+
+/* Who we are, in one line above the headline; the items are divided by the spark from the logo. */
+.eyebrow {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.3rem 0.6rem;
+	margin: 0 0 1.1rem;
+	color: rgb(255 255 255 / 0.82);
+	font-size: 0.74rem;
+	font-weight: 600;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+
+.eyebrow span {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6rem;
+	white-space: nowrap;
+}
+
+.eyebrow svg {
+	flex: none;
+	width: 0.62rem;
+	height: 0.62rem;
+	color: #93c5fd;
+}
+
+/* The picture beside the text: a page template in a browser window. */
+.mock {
+	margin: 0;
+	border-radius: var(--radius);
+	background: var(--surface);
+	box-shadow: 0 30px 60px -32px rgb(0 0 0 / 0.65);
+	overflow: hidden;
+}
+
+.mock__page {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+/* Thin grey outlines for the blocks; only the headline, the logo and the button carry weight. */
+.m-line {
+	fill: none;
+	stroke: var(--ink-3);
+	stroke-width: 1.25;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.m-line rect,
+.m-line circle {
+	fill: var(--bg-alt);
+}
+
+.m-head {
+	fill: none;
+	stroke: var(--ink-2);
+	stroke-width: 12;
+	stroke-linecap: round;
+}
+
+.m-logo,
+.m-button {
+	fill: var(--accent-solid);
+}
+
+.m-address {
+	fill: var(--ink-3);
+	font-size: 11px;
+	font-weight: 500;
+}
+
+/* Light and dark switch in the header: the same round button as in the client panel. */
+.theme-toggle {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 2.35rem;
+	height: 2.35rem;
+	padding: 0;
+	border: 1px solid var(--line-strong);
+	border-radius: 50%;
+	background: var(--surface);
+	color: var(--ink-2);
+	cursor: pointer;
+	transition:
+		border-color 0.15s ease,
+		color 0.15s ease;
+}
+
+.theme-toggle:hover {
+	border-color: var(--ink);
+	color: var(--ink);
+}
+
+/* The same button in the header, smaller and without the shadow */
+.cta--small {
+	gap: 0.6rem;
+	white-space: nowrap;
+	padding: 0.25rem 0.25rem 0.25rem 1rem;
+	font-size: 0.92rem;
+	box-shadow: none;
+}
+
+.cta--small .cta__arrow {
+	width: 1.85rem;
+	height: 1.85rem;
+}
+
+/* Sections: a numbered heading above the content, which uses the full width */
+.section {
+	padding-block: clamp(2rem, 4.5vw, 3rem);
+	border-top: 1px solid var(--line);
+}
+
+.section--alt {
+	background: var(--bg-alt);
+}
+
+.section__grid {
+	display: grid;
+	gap: 1.25rem;
+}
+
+/* Every section heading starts with the small spark from the logo. */
+.spark {
+	flex: none;
+	color: var(--accent);
+}
+
+.section h2 {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.section__head p {
+	margin-top: 0.4rem;
+	color: var(--ink-3);
+	font-size: 0.9rem;
+}
+
+/* Realizacje: a row of works, two in view, moved with the arrows on either side or by hand */
+.carousel {
+	position: relative;
+	/* A grid item would otherwise grow to fit the whole row instead of letting it scroll. */
+	min-width: 0;
+}
+
+/* The padding leaves room for a lifted card and its shadow; the negative margins take it back. */
+.works {
+	display: flex;
+	gap: 1rem;
+	margin: -0.5rem 0 -1.75rem;
+	padding: 0.5rem 0 1.75rem;
+	list-style: none;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x mandatory;
+	scrollbar-width: none;
+}
+
+.works::-webkit-scrollbar {
+	display: none;
+}
+
+.works .work {
+	flex: 0 0 calc((100% - 1rem) / 2);
+	scroll-snap-align: start;
+}
+
+.carousel__button {
+	position: absolute;
+	/* Exactly half way down the cards. */
+	top: 50%;
+	z-index: 2;
+	display: grid;
+	place-items: center;
+	width: 2.875rem;
+	height: 2.875rem;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: var(--accent-solid);
+	box-shadow:
+		0 0 0 4px var(--bg),
+		0 10px 24px -10px rgb(0 0 0 / 0.45);
+	color: #ffffff;
+	cursor: pointer;
+	translate: 0 -50%;
+	transition:
+		background-color 0.15s ease,
+		scale 0.15s ease;
+}
+
+/* Half outside the row where the page margin allows it. */
+.carousel__button--prev {
+	left: max(-1.4375rem, 0.25rem - var(--gutter));
+}
+
+.carousel__button--next {
+	right: max(-1.4375rem, 0.25rem - var(--gutter));
+}
+
+.carousel__button:hover {
+	background: var(--accent-solid-hover);
+	scale: 1.06;
+}
+
+.work {
+	/* Keeps the hidden screen-reader labels of its links inside the card, so they scroll with it. */
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	background: var(--surface);
+	overflow: hidden;
+	transition:
+		translate 0.2s ease,
+		box-shadow 0.2s ease;
+}
+
+.work__shot {
+	border-bottom: 1px solid var(--line);
+	overflow: hidden;
+}
+
+.work__shot img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+	object-position: top;
+}
+
+.work__body {
+	display: grid;
+	flex: 1;
+	align-content: start;
+	gap: 0.35rem;
+	padding: 1.1rem 1.25rem 1rem;
+}
+
+.work__body h3 {
+	font-size: 1.15rem;
+}
+
+.work__body p {
+	max-width: 30rem;
+	color: var(--ink-2);
+	font-size: 0.92rem;
+}
+
+.work__body .work__kind {
+	color: var(--accent);
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+
+/* The links sit on their own line at the bottom of the card. */
+.work__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem 1.5rem;
+	margin: 0 1.25rem;
+	padding: 0.8rem 0 0.95rem;
+	border-top: 1px solid var(--line);
+	font-size: 0.92rem;
+	font-weight: 600;
+}
+
+.work__links a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	text-decoration: none;
+}
+
+.work__links a:hover {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.work__note {
+	color: var(--ink-3);
+	font-weight: 500;
+}
+
+/* Cards answer the cursor: they lift a little. */
+@media (hover: hover) {
+	.works .work:hover {
+		translate: 0 -4px;
+		box-shadow: var(--shadow);
+	}
+}
+
+/* The free slot runs the full width: a small sketch on the left, the invitation beside it. */
+.work--next {
+	margin-top: -0.25rem;
+	flex-direction: row;
+	align-items: center;
+	border-style: dashed;
+	background: color-mix(in srgb, var(--surface) 60%, transparent);
+}
+
+.work--next .sketch {
+	flex: none;
+	width: 13.5rem;
+	margin: 1rem 0 1rem 1.25rem;
+	border: 1px solid var(--line);
+	border-radius: 10px;
+}
+
+.work--next .work__body {
+	padding-block: 1rem;
+}
+
+.work--next .work__links {
+	flex: none;
+	margin: 0 1.5rem 0 0;
+	padding: 0;
+	border: 0;
+}
+
+/* The free slot shows a sketch of a site that is yet to be built. */
+.sketch {
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr) auto;
+	gap: 0.5rem;
+	aspect-ratio: 16 / 10;
+	min-height: 0;
+	padding: 0.7rem 0.8rem;
+	overflow: hidden;
+	border-bottom: 1px solid var(--line);
+	background: var(--surface);
+}
+
+.sketch i {
+	display: block;
+	border-radius: 999px;
+	background: var(--line);
+}
+
+.sketch__top {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.sketch__top b {
+	margin-right: auto;
+	color: var(--ink-3);
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+.sketch__top i {
+	width: 1.6rem;
+	height: 0.3rem;
+}
+
+.sketch__top .sketch__cta {
+	width: 2.4rem;
+	height: 0.85rem;
+	background: var(--accent-soft);
+}
+
+.sketch__hero {
+	display: grid;
+	align-content: center;
+	gap: 0.4rem;
+}
+
+.sketch__line {
+	width: 62%;
+	height: 0.7rem;
+	background: color-mix(in srgb, var(--ink-3) 45%, var(--line)) !important;
+}
+
+.sketch__line--short {
+	width: 40%;
+}
+
+.sketch__text {
+	width: 54%;
+	height: 0.3rem;
+	margin-top: 0.15rem;
+}
+
+.sketch__button {
+	width: 4.2rem;
+	height: 1.15rem;
+	margin-top: 0.3rem;
+	background: var(--accent-solid) !important;
+}
+
+.sketch__boxes {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0.4rem;
+}
+
+.sketch__boxes i {
+	height: 1.5rem;
+	border-radius: 6px;
+}
+
+/* Współpraca: four stages on one line, each with how long it takes */
+.steps {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1.5rem;
+	margin: 0.75rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.steps li {
+	position: relative;
+}
+
+.steps__dot {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: 50%;
+	background: var(--accent-solid);
+	color: #ffffff;
+	font-size: 1.05rem;
+	font-weight: 700;
+}
+
+/* The last stage does not end, so its dot is an outline with a loop. */
+.steps__ongoing .steps__dot {
+	border: 2px solid var(--accent-solid);
+	background: var(--bg-alt);
+	color: var(--accent);
+}
+
+/* The line runs from each dot to the next one. */
+.steps li::before {
+	content: '';
+	position: absolute;
+	top: 1.25rem;
+	right: -1.5rem;
+	left: 2.5rem;
+	height: 2px;
+	translate: 0 -50%;
+	background: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+/* After the last dot the line is dashed and fades out: this stage goes on. */
+.steps li.steps__ongoing::before {
+	right: 0;
+	background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent) 45%, var(--line)) 0 6px, transparent 6px 12px);
+	-webkit-mask: linear-gradient(90deg, #000, transparent);
+	mask: linear-gradient(90deg, #000, transparent);
+}
+
+/* How long the stage takes: a small grey label between the dot and the title */
+.steps__time {
+	display: block;
+	margin-top: 1rem;
+	color: var(--ink-3);
+	font-size: 0.75rem;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+.steps h3 {
+	margin-top: 0.25rem;
+	font-size: 1.1rem;
+}
+
+.steps p {
+	max-width: 15.5rem;
+	margin-top: 0.35rem;
+	color: var(--ink-2);
+	font-size: 0.95rem;
+}
+
+.tile {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 2.4rem;
+	height: 2.4rem;
+	border-radius: 10px;
+	background: var(--accent-soft);
+	color: var(--accent);
+}
+
+/* Panel klienta: three points, each with its own fragment of the panel. On wide screens the
+   fragments share one frame on the right and the chosen point decides which one shows. */
+.tour {
+	display: grid;
+	gap: 2rem;
+}
+
+.tour__item {
+	display: grid;
+	gap: 0.9rem;
+}
+
+.tour__tab {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	gap: 0.85rem;
+	/* Present from the start, so nothing flashes when the script switches the layout on. */
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+}
+
+.tour__icon {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 2.4rem;
+	height: 2.4rem;
+	border-radius: 10px;
+	background: var(--accent-soft);
+	color: var(--accent);
+}
+
+.tour__tab button {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	letter-spacing: inherit;
+	text-align: left;
+}
+
+.tour__tab p {
+	margin-top: 0.25rem;
+	color: var(--ink-2);
+	font-size: 0.92rem;
+}
+
+.tour__shot {
+	margin: 0;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	background: #f3f4f6;
+	box-shadow: var(--shadow);
+	overflow: hidden;
+}
+
+.tour__bar {
+	display: flex;
+	gap: 0.35rem;
+	padding: 0.55rem 0.75rem;
+	border-bottom: 1px solid var(--line);
+	background: var(--bg-alt);
+}
+
+.tour__bar span {
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: 50%;
+	background: var(--line-strong);
+}
+
+.tour__shot img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+@media (min-width: 62.01rem) {
+	.tour[data-tour-ready] {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 27.5rem);
+		grid-template-rows: 1fr repeat(4, auto) 1fr;
+		gap: 0.3rem clamp(1.5rem, 4vw, 3rem);
+	}
+
+	.tour[data-tour-ready] .tour__item {
+		display: contents;
+	}
+
+	.tour[data-tour-ready] .tour__tab {
+		grid-column: 1;
+		grid-row: var(--row);
+		padding: 0.8rem 1rem;
+		transition:
+			background-color 0.15s ease,
+			border-color 0.15s ease;
+	}
+
+	/* The button stretches over the whole point, so a click anywhere on it counts. */
+	.tour[data-tour-ready] .tour__tab button {
+		cursor: pointer;
+	}
+
+	.tour[data-tour-ready] .tour__tab button::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: var(--radius);
+	}
+
+	.tour[data-tour-ready] .tour__tab button:focus-visible {
+		outline: none;
+	}
+
+	.tour[data-tour-ready] .tour__tab button:focus-visible::after {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+
+	.tour[data-tour-ready] .tour__item:not(.is-active) .tour__icon {
+		background: var(--bg-alt);
+		color: var(--ink-3);
+	}
+
+	.tour[data-tour-ready] .tour__item:not(.is-active) h3 {
+		color: var(--ink-2);
+	}
+
+	.tour[data-tour-ready] .is-active .tour__tab {
+		border-color: var(--line);
+		background: var(--surface);
+		box-shadow: 0 1px 2px rgb(20 22 26 / 0.05);
+	}
+
+	.tour[data-tour-ready] .tour__shot {
+		grid-column: 2;
+		grid-row: 1 / -1;
+		align-self: center;
+		opacity: 0;
+		visibility: hidden;
+		transition:
+			opacity 0.2s ease,
+			visibility 0.2s;
+	}
+
+	.tour[data-tour-ready] .is-active .tour__shot {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	/* While the section moves on by itself, a thin line in the chosen point shows how long it stays. */
+	.tour[data-tour-running] .is-active .tour__progress {
+		animation: tour-progress var(--tour-pause, 6s) linear both;
+	}
+}
+
+/* The line sits where the eye is, at the bottom of the point being read, clear of its rounded corners. */
+.tour__progress {
+	position: absolute;
+	right: 1rem;
+	bottom: 0;
+	left: 1rem;
+	height: 3px;
+	border-radius: 3px 3px 0 0;
+	background: var(--accent-solid);
+	transform: scaleX(0);
+	transform-origin: left;
+	pointer-events: none;
+}
+
+/* On narrow screens the points stand side by side, picture first, and are swiped through.
+   The edge of the next one shows there is more. */
+@media (max-width: 62rem) {
+	.tour {
+		display: flex;
+		gap: 1rem;
+		min-width: 0;
+		margin-inline: calc(-1 * var(--gutter));
+		padding-inline: var(--gutter);
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: var(--gutter);
+		scrollbar-width: none;
+	}
+
+	.tour::-webkit-scrollbar {
+		display: none;
+	}
+
+	.tour__item {
+		flex: 0 0 min(84%, 23rem);
+		align-content: start;
+		scroll-snap-align: start;
+	}
+
+	.tour__shot {
+		order: -1;
+	}
+}
+
+@keyframes tour-progress {
+	from {
+		transform: scaleX(0);
+	}
+
+	to {
+		transform: scaleX(1);
+	}
+}
+
+/* The section sits on the gradient of the top section.
+   The blue is the same in both themes, so the colours on it are fixed too. */
+.section--panel {
+	position: relative;
+	padding-block: clamp(2.5rem, 6vw, 4.5rem);
+	isolation: isolate;
+	overflow: hidden;
+	border-top-color: transparent;
+	background: linear-gradient(160deg, #1d4ed8, color-mix(in oklab, #1d4ed8, black 38%));
+	color: #ffffff;
+}
+
+/* Dots in the top right corner, behind the picture: large at the corner, smaller and then gone further in. */
+.dots {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: -1;
+	width: min(45rem, 56%);
+	height: auto;
+	fill: rgb(255 255 255 / 0.2);
+	pointer-events: none;
+}
+
+/* On narrow screens the text runs the full width, so the corner is smaller and ends above it. */
+@media (max-width: 62rem) {
+	.dots {
+		width: 46%;
+	}
+}
+
+/* The text under the heading wraps before it reaches the dots. */
+.section--panel .section__head p {
+	max-width: 38rem;
+}
+
+.section--panel + .section {
+	border-top-color: transparent;
+}
+
+.section--panel .spark {
+	color: #ffffff;
+}
+
+.section--panel .section__head p,
+.section--panel .tour__tab p {
+	color: rgb(255 255 255 / 0.86);
+}
+
+.section--panel .tour__icon {
+	background: rgb(255 255 255 / 0.14);
+	color: #ffffff;
+}
+
+.section--panel .tour__shot {
+	border-color: rgb(255 255 255 / 0.22);
+	box-shadow: 0 24px 48px -24px rgb(6 16 60 / 0.7);
+}
+
+.section--panel :focus-visible {
+	outline-color: #ffffff;
+}
+
+@media (min-width: 62.01rem) {
+	.section--panel .tour[data-tour-ready] .tour__item:not(.is-active) .tour__icon {
+		background: rgb(255 255 255 / 0.1);
+		color: rgb(255 255 255 / 0.8);
+	}
+
+	.section--panel .tour[data-tour-ready] .tour__item:not(.is-active) h3 {
+		color: rgb(255 255 255 / 0.86);
+	}
+
+	.section--panel .tour[data-tour-ready] .tour__tab button:focus-visible::after {
+		outline-color: #ffffff;
+	}
+
+	/* The chosen point is the one white tile on the blue. */
+	.section--panel .tour[data-tour-ready] .is-active .tour__tab {
+		border-color: transparent;
+		background: #ffffff;
+		box-shadow: 0 14px 30px -18px rgb(6 16 60 / 0.6);
+		color: #14161a;
+	}
+
+	.section--panel .tour[data-tour-ready] .is-active .tour__tab p {
+		color: #4b5160;
+	}
+
+	.section--panel .tour[data-tour-ready] .is-active .tour__icon {
+		background: #e6edfd;
+		color: #1d4ed8;
+	}
+}
+
+/* Cennik */
+.prices__title {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.25rem 0.6rem;
+	margin-bottom: 0.7rem;
+}
+
+.prices__title span {
+	color: var(--ink-3);
+	font-size: 0.88rem;
+	font-weight: 400;
+	letter-spacing: 0;
+}
+
+.plans {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.75rem;
+	margin: 0 0 1.75rem;
+	padding: 0;
+	list-style: none;
+}
+
+/* One-off prices: two groups side by side, each a heading and one card of rows. */
+.onetime {
+	display: grid;
+	grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+	gap: 0.75rem;
+	margin-bottom: 0.7rem;
+}
+
+/* Heading on top, the card filling the rest, so both cards end at the same height. */
+.onetime__group {
+	display: grid;
+	grid-template-rows: auto 1fr;
+}
+
+/* Rows share the height of the card evenly: name and scope on the left, price on the right. */
+.pricelist {
+	display: grid;
+	grid-auto-rows: 1fr;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	background: var(--surface);
+	box-shadow: 0 1px 2px rgb(20 22 26 / 0.05);
+	list-style: none;
+	overflow: hidden;
+}
+
+.pricelist li {
+	display: grid;
+	transition: background-color 0.15s ease;
+}
+
+.pricelist li + li {
+	border-top: 1px solid var(--line);
+}
+
+.pricelist .pick {
+	display: flex;
+	align-items: center;
+	gap: 0.9rem;
+	padding: 0.85rem 1.15rem;
+}
+
+.pick__text {
+	flex: 1;
+	min-width: 0;
+}
+
+.pricelist strong,
+.pricelist small {
+	display: block;
+}
+
+.pricelist strong {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 0.6rem;
+	font-size: 1.05rem;
+	letter-spacing: -0.01em;
+}
+
+.pricelist small {
+	margin-top: 0.15rem;
+	color: var(--ink-3);
+	font-size: 0.88rem;
+}
+
+/* Same price style as the subscription cards below, a little smaller */
+.pricelist__price {
+	flex: none;
+	color: var(--ink-2);
+	font-size: 0.92rem;
+	white-space: nowrap;
+}
+
+.pricelist__price b {
+	color: var(--ink);
+	font-size: 1.55rem;
+	font-weight: 650;
+	letter-spacing: -0.02em;
+	transition: color 0.15s ease;
+}
+
+/* Picking from the price list: every row and every plan is a button with a mark to tick. */
+.pick {
+	width: 100%;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	letter-spacing: inherit;
+	text-align: left;
+}
+
+:root[data-picker] .pick {
+	cursor: pointer;
+}
+
+.pick__mark {
+	display: none;
+	place-items: center;
+	flex: none;
+	width: 1.3rem;
+	height: 1.3rem;
+	border: 1.5px solid var(--line-strong);
+	border-radius: 50%;
+	background: var(--surface);
+	color: transparent;
+	transition:
+		background-color 0.15s ease,
+		border-color 0.15s ease;
+}
+
+:root[data-picker] .pick__mark {
+	display: grid;
+}
+
+.pick[aria-pressed='true'] .pick__mark {
+	border-color: var(--accent-solid);
+	background: var(--accent-solid);
+	color: #ffffff;
+}
+
+.pick:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: -2px;
+}
+
+/* The row or card under the cursor is tinted; a picked one keeps the tint and gets an accent edge. */
+@media (hover: hover) {
+	.pricelist li:hover,
+	.plan:hover {
+		background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface));
+	}
+
+	.pricelist li:hover .pricelist__price b {
+		color: var(--accent);
+	}
+
+	.pick:hover .pick__mark {
+		border-color: var(--accent);
+	}
+}
+
+/* What is picked wears the blue gradient of the top section, with white text; everything else stays white. */
+.pricelist li.is-picked,
+.plan.is-picked {
+	background: linear-gradient(160deg, #1d4ed8, color-mix(in oklab, #1d4ed8, black 34%));
+	color: #ffffff;
+}
+
+/* No grey lines against the blue row. */
+.pricelist li.is-picked,
+.pricelist li.is-picked + li {
+	border-top-color: transparent;
+}
+
+.pricelist li.is-picked small,
+.plan.is-picked .plan__features small {
+	color: rgb(255 255 255 / 0.74);
+}
+
+.pricelist li.is-picked .pricelist__price b,
+.plan.is-picked .plan__price b {
+	color: #ffffff;
+}
+
+.is-picked .pick[aria-pressed='true'] .pick__mark {
+	border-color: #ffffff;
+	background: #ffffff;
+	color: #1d4ed8;
+}
+
+.plan.is-picked {
+	border-color: transparent;
+	box-shadow: 0 14px 30px -18px rgb(13 32 100 / 0.55);
+}
+
+.plan.is-picked .plan__price {
+	color: rgb(255 255 255 / 0.76);
+}
+
+.plan.is-picked .plan__about {
+	color: rgb(255 255 255 / 0.88);
+}
+
+.plan.is-picked .plan__features {
+	border-top-color: rgb(255 255 255 / 0.22);
+}
+
+.plan.is-picked .plan__features .icon {
+	color: #93c5fd;
+}
+
+.plan.is-picked .pick--plan[aria-pressed='true'] {
+	border-color: #ffffff;
+	background: #ffffff;
+	box-shadow: none;
+	color: #1d4ed8;
+}
+
+.is-picked .pick:focus-visible,
+.plan.is-picked .pick--plan:focus-visible::after {
+	outline-color: #ffffff;
+}
+
+/* In a plan the button sits at the bottom of the card, and its hit area is the whole card. */
+.plan {
+	position: relative;
+}
+
+.pick--plan {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	min-height: 2.6rem;
+	margin-top: 1.1rem;
+	border: 1px solid var(--line-strong);
+	border-radius: 999px;
+	background: var(--surface);
+	font-size: 0.95rem;
+	font-weight: 600;
+	transition:
+		background-color 0.15s ease,
+		border-color 0.15s ease,
+		color 0.15s ease;
+}
+
+:root[data-picker] .pick--plan {
+	display: flex;
+}
+
+.pick--plan::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: var(--radius);
+}
+
+.pick__on {
+	display: none;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+/* Picked: a blue outline, blue text and a tick. Not a solid blue fill, which would melt into the blue bar when the bar floats over it. */
+.pick--plan[aria-pressed='true'] {
+	border-color: var(--accent);
+	box-shadow: inset 0 0 0 1px var(--accent);
+	color: var(--accent);
+}
+
+.pick--plan[aria-pressed='true'] .pick__off {
+	display: none;
+}
+
+.pick--plan[aria-pressed='true'] .pick__on {
+	display: inline-flex;
+}
+
+.pick--plan:focus-visible {
+	outline: none;
+}
+
+.pick--plan:focus-visible::after {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+@media (hover: hover) {
+	.plan:hover .pick--plan:not([aria-pressed='true']) {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+}
+
+/* What ordering both together gives, under the two one-off cards */
+.onetime__note {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.4rem;
+	margin: 0 0 1.75rem;
+	color: var(--ink-2);
+	font-size: 0.9rem;
+}
+
+.onetime__note .icon {
+	flex: none;
+	margin-top: 0.3rem;
+	color: var(--accent);
+}
+
+/* The choice added up: a light bar floating at the bottom of the screen. What is picked is blue,
+   so the bar is the opposite: white, with the one blue button, and a shadow that lifts it off the cards.
+   Its width and its two sums are always the same, so it does not jump as things are picked. */
+.basket {
+	--on: var(--ink);
+	--on-quiet: var(--ink-3);
+	--on-line: var(--line-strong);
+
+	position: fixed;
+	bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+	left: 50%;
+	z-index: 20;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.7rem 1.75rem;
+	width: min(100% - 2rem, 54rem);
+	padding: 0.75rem 0.75rem 0.75rem 1.5rem;
+	border-radius: 20px;
+	border: 1px solid var(--line-strong);
+	background: var(--surface);
+	box-shadow:
+		0 22px 48px -14px rgb(20 22 26 / 0.38),
+		0 3px 10px rgb(20 22 26 / 0.1);
+	color: var(--on);
+	translate: -50% 0;
+	animation: basket-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes basket-in {
+	from {
+		opacity: 0;
+		translate: -50% 0.9rem;
+	}
+}
+
+.basket[hidden],
+.basket [hidden] {
+	display: none;
+}
+
+/* The one-off sum gets the wider column, because its detail names up to two things. */
+.basket__sums {
+	display: grid;
+	grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+	flex: 1;
+	min-width: 0;
+}
+
+.basket__sums p {
+	display: grid;
+	min-width: 0;
+	line-height: 1.3;
+}
+
+/* A thin line between the one-off sum and the monthly one. */
+.basket__sums p + p {
+	padding-left: 1.5rem;
+	border-left: 1px solid var(--on-line);
+}
+
+.basket__sums small {
+	color: var(--on-quiet);
+	font-size: 0.68rem;
+	font-weight: 600;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+
+.basket__value {
+	color: var(--on-quiet);
+	font-size: 0.86rem;
+	white-space: nowrap;
+}
+
+.basket__value b {
+	color: var(--on);
+	font-size: 1.3rem;
+	font-weight: 650;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -0.02em;
+}
+
+.basket__detail {
+	padding-right: 1rem;
+	overflow: hidden;
+	color: var(--on-quiet);
+	font-size: 0.8rem;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Nothing picked in this part yet: a dash instead of the sum. */
+.basket__sums .is-empty b {
+	color: var(--on-quiet);
+	font-weight: 500;
+}
+
+.basket__sums .is-empty .basket__unit {
+	display: none;
+}
+
+.basket__actions {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.basket__clear {
+	display: grid;
+	place-items: center;
+	width: 2.35rem;
+	height: 2.35rem;
+	padding: 0;
+	border: 1px solid var(--on-line);
+	border-radius: 50%;
+	background: none;
+	color: var(--on-quiet);
+	cursor: pointer;
+	transition:
+		background-color 0.15s ease,
+		color 0.15s ease;
+}
+
+.basket__clear:hover {
+	background: var(--on-line);
+	color: var(--on);
+}
+
+.basket :focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+/* After sending: what happened, and where to write if no e-mail opened. */
+.basket__note {
+	flex: 0 0 100%;
+	margin: 0;
+	padding: 0.6rem 0.8rem 0.15rem 0;
+	border-top: 1px solid var(--on-line);
+	color: var(--on-quiet);
+	font-size: 0.82rem;
+}
+
+.basket__note a {
+	color: var(--accent);
+}
+
+.basket__send {
+	border: 0;
+	font: inherit;
+	font-size: 0.95rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+/* A link on the right of a price heading, e.g. to an example of the work */
+.prices__title a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	margin-left: auto;
+	font-size: 0.86rem;
+	font-weight: 600;
+	letter-spacing: 0;
+}
+
+/* Plan cards mirror the Pakiety screen of the client panel. */
+.plans {
+	margin-bottom: 0.9rem;
+}
+
+.plan {
+	display: flex;
+	flex-direction: column;
+	padding: 1.25rem 1.15rem 1.15rem;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	background: var(--surface);
+	box-shadow: 0 1px 2px rgb(20 22 26 / 0.05);
+	transition:
+		background-color 0.15s ease,
+		border-color 0.15s ease,
+		box-shadow 0.15s ease;
+}
+
+.plan__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.3rem 0.6rem;
+	font-size: 1.05rem;
+	letter-spacing: -0.01em;
+}
+
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	padding: 0.1rem 0.6rem;
+	border-radius: 999px;
+	background: var(--badge-bg);
+	color: var(--badge-ink);
+	font-size: 0.8rem;
+	font-weight: 700;
+	letter-spacing: 0;
+}
+
+.badge .icon {
+	fill: currentColor;
+}
+
+.plan__price {
+	margin-top: 0.35rem;
+	color: var(--ink-2);
+}
+
+.plan__price b {
+	color: var(--accent);
+	font-size: 1.9rem;
+	font-weight: 650;
+	letter-spacing: -0.02em;
+}
+
+.plan__about {
+	margin-top: 0.5rem;
+	color: var(--ink-2);
+	white-space: pre-line;
+}
+
+.plan__features {
+	display: grid;
+	gap: 0.6rem;
+	margin: 1rem 0 0;
+	padding: 1rem 0 0;
+	border-top: 1px solid var(--line);
+	list-style: none;
+	font-size: 0.9rem;
+}
+
+.plan__features li {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.6rem;
+}
+
+.plan__features .icon {
+	flex: none;
+	margin-top: 0.12rem;
+	color: var(--accent);
+}
+
+.plan__features small {
+	display: block;
+	color: var(--ink-3);
+	font-size: 0.82rem;
+}
+
+/* Name, price, description and each feature start at the same height in every card. */
+@supports (grid-template-rows: subgrid) {
+	.plan {
+		display: grid;
+		grid-template-rows: subgrid;
+		grid-row: span 7;
+		row-gap: 0;
+	}
+
+	.plan__price {
+		align-self: end;
+	}
+
+	.plan__features {
+		grid-template-rows: subgrid;
+		grid-row: span 3;
+		align-items: start;
+	}
+}
+
+/* What every plan includes, whichever one the client picks */
+.included {
+	padding: 1.25rem 1.4rem 1.4rem;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	background: var(--surface);
+	box-shadow: 0 1px 2px rgb(20 22 26 / 0.05);
+}
+
+/* Four in a row, two rows: an icon, the name and one short line of detail */
+.perks {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1.1rem 1.25rem;
+	margin: 1rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.perks li {
+	display: flex;
+	align-items: center;
+	gap: 0.7rem;
+	min-width: 0;
+}
+
+.perks__icon {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: 10px;
+	background: var(--accent-soft);
+	color: var(--accent);
+}
+
+.perks strong,
+.perks a {
+	display: block;
+	color: var(--ink);
+	font-size: 0.95rem;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.perks a {
+	text-decoration-color: var(--line-strong);
+	text-underline-offset: 3px;
+}
+
+.perks a:hover {
+	color: var(--accent);
+	text-decoration-color: currentColor;
+}
+
+.perks a .icon {
+	vertical-align: -0.05em;
+	opacity: 0.6;
+}
+
+.perks small {
+	display: block;
+	color: var(--ink-3);
+	font-size: 0.82rem;
+	line-height: 1.35;
+}
+
+/* Questions open on click */
+details summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+}
+
+details summary::-webkit-details-marker {
+	display: none;
+}
+
+details summary::after {
+	content: '';
+	flex: none;
+	width: 0.5rem;
+	height: 0.5rem;
+	margin-right: 0.3rem;
+	border: solid var(--ink-3);
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+	transition: transform 0.15s ease;
+}
+
+details[open] summary::after {
+	transform: rotate(-135deg);
+}
+
+.faq {
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	background: var(--surface);
+	/* The rows' own backgrounds follow the rounded corners. */
+	overflow: hidden;
+}
+
+.faq details + details {
+	border-top: 1px solid var(--line);
+}
+
+.faq summary {
+	padding: 1rem 1.25rem;
+	transition:
+		background-color 0.15s ease,
+		color 0.15s ease;
+}
+
+@media (hover: hover) {
+	.faq summary:hover {
+		background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface));
+	}
+}
+
+/* The card clips what sticks out, so the focus ring is drawn inside the row. */
+.faq summary:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: -2px;
+}
+
+.faq details p {
+	padding: 0 1.25rem 1.1rem;
+	color: var(--ink-2);
+}
+
+/* Answers slide open in browsers that can animate to a height they have to measure; elsewhere they simply appear. */
+@supports (interpolate-size: allow-keywords) {
+	@media (prefers-reduced-motion: no-preference) {
+		.faq {
+			interpolate-size: allow-keywords;
+		}
+
+		.faq details::details-content {
+			block-size: 0;
+			overflow-y: clip;
+			transition:
+				block-size 0.25s ease,
+				content-visibility 0.25s allow-discrete;
+		}
+
+		.faq details[open]::details-content {
+			block-size: auto;
+		}
+	}
+}
+
+/* Prices of changes inside an answer: three tiles side by side, each a change, its price and the package time it takes instead. */
+.faq__prices {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.6rem;
+	margin: 0 1.25rem 1rem;
+}
+
+.faq__prices > div {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	padding: 0.9rem 1rem;
+	border-radius: 10px;
+	background: var(--bg-alt);
+}
+
+.faq__prices dt {
+	font-weight: 600;
+}
+
+.faq__prices dd {
+	margin: 0;
+	color: var(--ink-3);
+	font-size: 0.86rem;
+}
+
+.faq__prices .faq__price b {
+	color: var(--ink);
+	font-size: 1.4rem;
+	font-weight: 650;
+	letter-spacing: -0.02em;
+}
+
+/* The time sits at the bottom of the tile, so the three line up whatever the description's length. */
+.faq__prices .faq__time {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+	margin-top: auto;
+	padding-top: 0.5rem;
+	color: var(--ink-2);
+}
+
+@media (max-width: 40rem) {
+	.faq__prices {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+/* Contact: a form of two fields in one card, and three ways to reach us beside it */
+.reach {
+	display: grid;
+	grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+	gap: 0.75rem;
+}
+
+.composer {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	background: var(--surface);
+	box-shadow: 0 1px 2px rgb(20 22 26 / 0.05);
+	overflow: hidden;
+}
+
+.composer__field {
+	display: flex;
+	flex-direction: column;
+	padding: 0.7rem 1.15rem 0.75rem;
+	border-bottom: 1px solid var(--line);
+}
+
+/* The message takes whatever height is left. */
+.composer__field--grow {
+	flex: 1;
+}
+
+.composer label {
+	color: var(--ink-3);
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+
+.composer select,
+.composer textarea {
+	width: 100%;
+	margin: 0;
+	padding: 0.2rem 0;
+	border: 0;
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--ink);
+	font: inherit;
+}
+
+/* The browser's own arrow is replaced with a drawn one, so the list looks the same everywhere. */
+.composer select {
+	appearance: none;
+	padding-right: 1.5rem;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%236b717c' stroke-width='1.75'/%3E%3C/svg%3E") no-repeat right 0.1rem center / 0.75rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.composer textarea {
+	flex: 1;
+	min-height: 5.5rem;
+	resize: vertical;
+}
+
+.composer select:focus-visible,
+.composer textarea:focus-visible {
+	outline: none;
+}
+
+/* Focus is shown on the whole field, label included. */
+.composer__field:focus-within {
+	box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.composer textarea::placeholder {
+	color: var(--ink-3);
+	opacity: 1;
+}
+
+.composer__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem 1rem;
+	padding: 0.55rem 0.6rem 0.55rem 1.15rem;
+}
+
+.composer__foot p {
+	color: var(--ink-3);
+	font-size: 0.86rem;
+	line-height: 1.35;
+}
+
+.composer__foot .button {
+	flex: none;
+	gap: 0.45rem;
+}
+
+.contacts {
+	display: grid;
+	grid-auto-rows: 1fr;
+	gap: 0.75rem;
+}
+
+.contact {
+	display: flex;
+	align-items: center;
+	gap: 0.85rem;
+	padding: 0.85rem 1.05rem;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	background: var(--surface);
+	box-shadow: 0 1px 2px rgb(20 22 26 / 0.05);
+	color: inherit;
+	text-decoration: none;
+	transition: border-color 0.15s ease;
+}
+
+a.contact:hover {
+	border-color: var(--accent);
+}
+
+.contact__icon {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 2.4rem;
+	height: 2.4rem;
+	border-radius: 10px;
+	background: var(--accent-soft);
+	color: var(--accent);
+}
+
+.contact small,
+.contact b {
+	display: block;
+}
+
+.contact small {
+	color: var(--ink-3);
+	font-size: 0.8rem;
+}
+
+.contact b {
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+/* The way into the panel wears the blue gradient of the Panel klienta section. */
+.contact--panel {
+	border-color: transparent;
+	background: linear-gradient(160deg, #1d4ed8, color-mix(in oklab, #1d4ed8, black 34%));
+	box-shadow: 0 14px 30px -18px rgb(13 32 100 / 0.55);
+	color: #ffffff;
+	transition: filter 0.15s ease;
+}
+
+a.contact--panel:hover {
+	border-color: transparent;
+	filter: brightness(1.1);
+}
+
+.contact--panel .contact__icon {
+	background: rgb(255 255 255 / 0.16);
+	color: #ffffff;
+}
+
+.contact--panel small {
+	color: rgb(255 255 255 / 0.8);
+}
+
+/* Footer */
+.foot {
+	border-top: 1px solid var(--line);
+	color: var(--ink-3);
+	font-size: 0.9rem;
+}
+
+.foot__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.35rem 1.5rem;
+	padding-block: 1.1rem;
+}
+
+/* Company details in one line, parts divided by a dot. */
+.foot__company {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.15rem 0;
+	margin-right: auto;
+	font-style: normal;
+}
+
+.foot__company span + span::before {
+	content: '·';
+	margin-inline: 0.5rem;
+}
+
+.foot a {
+	color: var(--ink-2);
+	font-weight: 600;
+}
+
+/* Smaller screens */
+@media (max-width: 62rem) {
+	.perks {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.hero__grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	/* In one column the text is centred, with a slightly smaller sentence. */
+	.hero__text {
+		justify-items: center;
+		text-align: center;
+	}
+
+	.eyebrow,
+	.hero__actions {
+		justify-content: center;
+	}
+
+	.lead {
+		font-size: 1rem;
+		text-wrap: balance;
+	}
+
+	.mock {
+		width: 100%;
+		max-width: 34rem;
+		margin-inline: auto;
+	}
+
+	/* Steps turn into a vertical timeline: dots and line on the left, time above each title. */
+	.steps {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 1.5rem;
+	}
+
+	.steps li {
+		padding-left: 3.75rem;
+	}
+
+	.steps__dot {
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+
+	.steps li::before {
+		top: 2.5rem;
+		right: auto;
+		bottom: -1.5rem;
+		left: 1.25rem;
+		width: 2px;
+		height: auto;
+		translate: -50% 0;
+	}
+
+	.steps__ongoing::before {
+		display: none;
+	}
+
+	.steps__time {
+		margin-top: 0.15rem;
+	}
+
+	.steps p {
+		max-width: 30rem;
+	}
+
+	.top__nav {
+		display: none;
+	}
+
+	.subnav {
+		display: block;
+	}
+
+	.top__actions {
+		margin-left: auto;
+		padding-left: 0;
+		border-left: 0;
+	}
+}
+
+@media (max-width: 48rem) {
+	.works,
+	.onetime,
+	.plans,
+	.reach {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	/* Stacked, the two one-off groups need the same space between them as the other price blocks. */
+	.onetime {
+		gap: 1.5rem;
+	}
+
+	/* Each row is only as tall as its own text. */
+	.pricelist {
+		grid-auto-rows: auto;
+	}
+
+	/* The three ways to reach us go under the form, each only as tall as its text. */
+	.contacts {
+		grid-auto-rows: auto;
+	}
+
+	.prices__title a {
+		margin-left: 0;
+	}
+}
+
+@media (max-width: 30rem) {
+	/* In the header only the icon of the panel link stays. */
+	.top__link--panel span {
+		display: none;
+	}
+
+	.top__link--panel {
+		padding-inline: 0.4rem;
+	}
+
+	/* On phones the note and the button stack. */
+	.composer__foot {
+		flex-direction: column;
+		align-items: stretch;
+		padding: 0.7rem 0.6rem 0.6rem;
+	}
+
+	.composer__foot p {
+		padding-inline: 0.55rem;
+	}
+
+	/* In the footer every part gets its own line. */
+	.foot__row,
+	.foot__company {
+		flex-direction: column;
+	}
+
+	.foot__company span + span::before {
+		content: none;
+	}
+}
+
+/* Phones: shorter page, the same content */
+@media (max-width: 40rem) {
+	/* One work fills most of the row and the edge of the next one shows there is more. */
+	.works .work {
+		flex-basis: 86%;
+	}
+
+	/* Smaller and almost at the edge of the screen, so they do not sit on the text of a card. */
+	.carousel__button {
+		width: 2.25rem;
+		height: 2.25rem;
+	}
+
+	.carousel__button--prev {
+		left: calc(0.125rem - var(--gutter));
+	}
+
+	.carousel__button--next {
+		right: calc(0.125rem - var(--gutter));
+	}
+
+	/* The strip with the free slot stacks: sketch, text, link. */
+	.work--next {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.work--next .sketch {
+		width: auto;
+		margin: 1rem 1rem 0;
+	}
+
+	.work--next .work__links {
+		margin: 0 1.25rem;
+		padding: 0.8rem 0 0.95rem;
+		border-top: 1px solid var(--line);
+	}
+
+	.pricelist .pick {
+		gap: 0.7rem;
+		padding-inline: 1rem;
+	}
+
+	.pricelist__price b {
+		font-size: 1.3rem;
+	}
+
+	/* On a phone the bar takes the full width and stacks: the sums, then the two actions on one line. */
+	.basket {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0.65rem;
+		width: calc(100% - 1.5rem);
+		bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+		padding: 0.85rem 0.75rem 0.75rem;
+	}
+
+	/* No room for what the sums consist of; the picked rows above show it. */
+	/* Two halves; a longer detail is cut with an ellipsis, so the bar keeps its height. */
+	.basket__sums {
+		grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+		padding-inline: 0.5rem;
+	}
+
+	.basket__sums p + p {
+		padding-left: 1.25rem;
+	}
+
+	.basket__detail {
+		padding-right: 0.5rem;
+	}
+
+	.basket__send {
+		flex: 1;
+		justify-content: space-between;
+	}
+
+	.basket__note {
+		padding-inline: 0.5rem;
+	}
+
+	/* Plans: name and price share the first line of the card. */
+	.plan {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-rows: none;
+		grid-row: auto;
+		column-gap: 0.75rem;
+		padding: 1rem 1.1rem;
+	}
+
+	.plan__head {
+		align-self: start;
+		padding-top: 0.2rem;
+	}
+
+	.plan__price {
+		margin-top: 0;
+		text-align: right;
+		font-size: 0.86rem;
+		white-space: nowrap;
+	}
+
+	.plan__price b {
+		font-size: 1.5rem;
+	}
+
+	.plan__about,
+	.plan__features,
+	.pick--plan {
+		grid-column: 1 / -1;
+	}
+
+	.plan__about {
+		font-size: 0.95rem;
+	}
+
+	.plan__features {
+		grid-template-rows: none;
+		grid-row: auto;
+		gap: 0.5rem;
+		margin-top: 0.75rem;
+		padding-top: 0.75rem;
+	}
+
+	/* What every plan includes: one column, so every name and its detail stay on one line each. */
+	.perks {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.8rem;
+	}
+}
+
+/* Phones: the line above the headline gets smaller and the two buttons stack at the same width. */
+@media (max-width: 30rem) {
+	.eyebrow {
+		gap: 0.3rem 0.45rem;
+		font-size: 0.66rem;
+		letter-spacing: 0.07em;
+	}
+
+	.eyebrow span {
+		gap: 0.45rem;
+	}
+
+	.hero__actions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.hero__actions .cta {
+		justify-content: space-between;
+	}
+}
+
+/* The narrowest phones: the header button loses its arrow so everything fits on one line. */
+@media (max-width: 23rem) {
+	.top__row {
+		gap: 0.5rem;
+	}
+
+	.top__actions {
+		gap: 0.4rem;
+	}
+
+	.cta--small {
+		padding: 0.45rem 0.75rem;
+		font-size: 0.86rem;
+	}
+
+	.theme-toggle {
+		width: 2.1rem;
+		height: 2.1rem;
+	}
+
+	.eyebrow {
+		font-size: 0.62rem;
+		letter-spacing: 0.05em;
+	}
+
+	.cta--small .cta__arrow {
+		display: none;
+	}
+
+	.hero h1 {
+		font-size: 1.85rem;
+	}
+
+	/* Too narrow for name and price side by side. */
+	.plan {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.plan__price {
+		margin-top: 0.35rem;
+		text-align: left;
+	}
+
+}
+
+/* Entrance animations. They apply only under .js, which the page sets when a script runs and the
+   visitor has not asked for less motion; otherwise everything is simply there.
+   Each animation only describes where a block comes from, so afterwards the block is free to move on hover. */
+[data-reveal] > :nth-child(2) {
+	--n: 1;
+}
+
+[data-reveal] > :nth-child(3) {
+	--n: 2;
+}
+
+[data-reveal] > :nth-child(4) {
+	--n: 3;
+}
+
+/* self: the block rises into place. group: its children do, one after another. */
+.js [data-reveal='self']:not(.is-in),
+.js [data-reveal='group']:not(.is-in) > * {
+	opacity: 0;
+}
+
+.js [data-reveal='self'].is-in,
+.js [data-reveal='group'].is-in > * {
+	animation: rise 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+	animation-delay: calc(var(--n, 0) * 90ms);
+}
+
+@keyframes rise {
+	from {
+		opacity: 0;
+		transform: translateY(1.1rem);
+	}
+}
+
+/* steps: the dots light up one by one and the line is drawn from each to the next. */
+.js [data-reveal='steps']:not(.is-in) li {
+	opacity: 0;
+}
+
+.js [data-reveal='steps'].is-in li {
+	animation: appear 0.45s ease backwards;
+	animation-delay: calc(var(--n, 0) * 0.4s);
+}
+
+.js [data-reveal='steps'].is-in .steps__dot {
+	animation: pop 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
+	animation-delay: calc(var(--n, 0) * 0.4s);
+}
+
+.js [data-reveal='steps'].is-in li::before {
+	transform-origin: left;
+	animation: draw-across 0.5s ease-out backwards;
+	animation-delay: calc(var(--n, 0) * 0.4s + 0.2s);
+}
+
+@keyframes appear {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes pop {
+	from {
+		scale: 0.4;
+	}
+}
+
+@keyframes draw-across {
+	from {
+		scale: 0 1;
+	}
+}
+
+@keyframes draw-down {
+	from {
+		scale: 1 0;
+	}
+}
+
+@media (max-width: 62rem) {
+	.js [data-reveal='steps'].is-in li::before {
+		transform-origin: top;
+		animation-name: draw-down;
+	}
+}
+
+/* mock: the page template assembles itself block by block; the headline bars grow from the left. */
+.js [data-reveal='mock']:not(.is-in) .m-step {
+	opacity: 0;
+}
+
+.js [data-reveal='mock'].is-in .m-step {
+	animation: assemble 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+	animation-delay: calc(0.25s + var(--i) * 0.14s);
+}
+
+.js [data-reveal='mock'].is-in .m-head {
+	transform-box: fill-box;
+	transform-origin: left center;
+	animation: grow 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+	animation-delay: calc(0.25s + var(--i) * 0.14s);
+}
+
+@keyframes assemble {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+}
+
+@keyframes grow {
+	from {
+		transform: scaleX(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+
+	* {
+		transition: none !important;
+	}
+
+	.basket {
+		animation: none;
+	}
+}
