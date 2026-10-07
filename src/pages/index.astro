@@ -20,6 +20,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const { firma, budowa, grafika, pakiety, wKazdymPakiecie, etapy, realizacje, pytania, hasla, kontakt } = oferta;
 // While working locally the link leads to the panel running on this computer.
 const panelUrl = import.meta.env.DEV ? 'http://127.0.0.1:8000' : firma.panelUrl;
+// Inquiries go straight to the panel once that is switched on in oferta.json (kontakt.wysylkaDoPanelu);
+// while working locally they always go to the panel on this computer. Without an address the buttons
+// open the visitor's mail program, and the fields for an e-mail address are not shown.
+const zapytaniaUrl = import.meta.env.DEV ? `${panelUrl}/zapytanie` : kontakt.wysylkaDoPanelu ? `${firma.panelUrl}/zapytanie` : null;
+const odpowiedz = kontakt.odpowiedz.charAt(0).toLowerCase() + kontakt.odpowiedz.slice(1);
 const mail = `mailto:${firma.email}?subject=${encodeURIComponent('Zapytanie o stronę')}`;
 const obrazy = { ddabrowski, kozicki, gry, timer };
 // What a client does in the panel, each with the fragment of the panel that shows it.
@@ -460,15 +465,30 @@ interface Cecha {
 			</header>
 
 			<div class="reach" data-reveal="self">
-				<form class="composer" action={`mailto:${firma.email}`} method="get" data-email={firma.email}>
+				<form class="composer" action={`mailto:${firma.email}`} method="get" data-email={firma.email} data-endpoint={zapytaniaUrl}>
 					<input type="hidden" name="subject" value="Zapytanie ze strony" />
 
-					<div class="composer__field">
-						<label for="temat">Temat</label>
-						<select id="temat" name="temat">
-							{kontakt.tematy.map((temat) => <option>{temat}</option>)}
-						</select>
+					<div class:list={{ composer__row: Boolean(zapytaniaUrl) }}>
+						<div class="composer__field">
+							<label for="temat">Temat</label>
+							<select id="temat" name="temat">
+								{kontakt.tematy.map((temat) => <option>{temat}</option>)}
+							</select>
+						</div>
+
+						{/* Asked for only when the message goes to the panel: a mail program knows its sender by itself. */}
+						{
+							zapytaniaUrl && (
+								<div class="composer__field">
+									<label for="email">Twój e-mail</label>
+									<input id="email" type="email" name="email" placeholder="np. jan@firma.pl" autocomplete="email" required />
+								</div>
+							)
+						}
 					</div>
+
+					{/* A field people do not see. A robot fills it in, and the panel then drops the message. */}
+					{zapytaniaUrl && <input class="trap" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />}
 
 					<div class="composer__field composer__field--grow">
 						<label for="wiadomosc">Wiadomość</label>
@@ -476,7 +496,13 @@ interface Cecha {
 					</div>
 
 					<div class="composer__foot">
-						<p>Wiadomość otworzy się w&nbsp;Twoim programie pocztowym.</p>
+						<p data-note="idle">{zapytaniaUrl ? t(`Odpowiemy na podany adres ${odpowiedz}.`) : <Fragment set:html="Wiadomość otworzy się w&nbsp;Twoim programie pocztowym." />}</p>
+						<p data-note="sent" role="status" hidden>
+							Dziękujemy, wiadomość wysłana. {t(`Odpowiemy ${odpowiedz}.`)}
+						</p>
+						<p data-note="mail" role="status" hidden>
+							Nie udało się wysłać wiadomości ze strony, więc otworzyliśmy ją w&nbsp;Twoim programie pocztowym.
+						</p>
 						<button class="button" type="submit">
 							Wyślij <Icon name="arrow-right" size={17} />
 						</button>
@@ -484,20 +510,20 @@ interface Cecha {
 				</form>
 
 				<div class="contacts">
-					<a class="contact" href={`mailto:${firma.email}`}>
+					<a class="contact" href={`mailto:${firma.email}`} data-contact="email" data-place="kontakt">
 						<span class="contact__icon"><Icon name="mail" size={19} /></span>
 						<span>
 							<small>E-mail</small>
 							<b>{firma.email}</b>
 						</span>
 					</a>
-					<div class="contact">
-						<span class="contact__icon"><Icon name="clock" size={19} /></span>
+					<a class="contact" href={`tel:+48${firma.telefon.replaceAll(' ', '')}`} data-contact="telefon" data-place="kontakt">
+						<span class="contact__icon"><Icon name="phone" size={19} /></span>
 						<span>
-							<small>Odpowiadamy</small>
-							<b>{t(kontakt.odpowiedz)}</b>
+							<small>Telefon</small>
+							<b>{firma.telefon}</b>
 						</span>
-					</div>
+					</a>
 					{
 						panelUrl && (
 							<a class="contact contact--panel" href={panelUrl}>
@@ -517,17 +543,75 @@ interface Cecha {
 	</section>
 
 	<script is:inline>
-		// Opens the visitor's mail app with the chosen topic as the subject and their text as the message.
-		// Without JavaScript the form still submits to the same address.
-		document.querySelector('.composer').addEventListener('submit', (event) => {
-			const form = event.currentTarget;
+		// Sends an inquiry to the panel. False means it did not get there (no connection, no answer within
+		// six seconds, or a refusal), and the caller then falls back to the visitor's mail program.
+		const postInquiry = async (endpoint, payload) => {
+			const controller = new AbortController();
+			const timer = setTimeout(() => controller.abort(), 6000);
 
-			event.preventDefault();
-			location.href = `mailto:${form.dataset.email}?subject=${encodeURIComponent(`Zapytanie: ${form.elements.temat.value}`)}&body=${encodeURIComponent(form.elements.body.value)}`;
-		});
+			try {
+				const response = await fetch(endpoint, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+					body: JSON.stringify(payload),
+					signal: controller.signal,
+				});
+
+				return response.ok;
+			} catch {
+				return false;
+			} finally {
+				clearTimeout(timer);
+			}
+		};
+
+		// Kontakt: the message goes to the panel when the form knows its address. Otherwise, and whenever
+		// the panel does not take it, the visitor's mail program opens with the topic as the subject and
+		// their text as the message. Without JavaScript the form still submits to the same address.
+		{
+			const form = document.querySelector('.composer');
+			const button = form.querySelector('button[type="submit"]');
+			const notes = [...form.querySelectorAll('[data-note]')];
+			const show = (name) => notes.forEach((note) => (note.hidden = note.dataset.note !== name));
+			const openMail = () => {
+				location.href = `mailto:${form.dataset.email}?subject=${encodeURIComponent(`Zapytanie: ${form.elements.temat.value}`)}&body=${encodeURIComponent(form.elements.body.value)}`;
+			};
+
+			form.addEventListener('submit', async (event) => {
+				event.preventDefault();
+
+				if (!form.dataset.endpoint) {
+					openMail();
+
+					return;
+				}
+
+				button.disabled = true;
+
+				const sent = await postInquiry(form.dataset.endpoint, {
+					email: form.elements.email.value,
+					topic: form.elements.temat.value,
+					message: form.elements.body.value,
+					website: form.elements.website.value,
+				});
+
+				button.disabled = false;
+
+				if (sent) {
+					form.reset();
+					show('sent');
+				} else {
+					openMail();
+					show('mail');
+				}
+			});
+
+			// Writing again brings back the usual line under the form.
+			form.addEventListener('input', () => show('idle'));
+		}
 	</script>
 	{/* The visitor's choice from the price list, added up; it stays at the bottom of the screen until it is sent or cleared. */}
-	<aside class="basket" aria-label="Twój wybór" data-discount={grafika.rabatZeStrona} data-email={firma.email} hidden>
+	<aside class="basket" aria-label="Twój wybór" data-discount={grafika.rabatZeStrona} data-email={firma.email} data-endpoint={zapytaniaUrl} hidden>
 		<div class="basket__sums" aria-live="polite">
 			<p data-sum="once">
 				<small>Jednorazowo</small>
@@ -548,13 +632,28 @@ interface Cecha {
 			<button type="button" class="basket__clear" aria-label="Wyczyść wybór" title="Wyczyść wybór">
 				<Icon name="x" size={16} />
 			</button>
+			{/* Shown after the first click on the button, and only when the inquiry goes to the panel. */}
+			{
+				zapytaniaUrl && (
+					<>
+						<label class="sr-only" for="basket-email">
+							Twój e-mail
+						</label>
+						<input class="basket__email" id="basket-email" type="email" placeholder="Twój e-mail" autocomplete="email" required hidden />
+						<input class="trap" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+					</>
+				)
+			}
 			<button type="button" class="cta cta--small basket__send">
-				Wyślij zapytanie
+				<span class="basket__send-label">Wyślij zapytanie</span>
 				<span class="cta__arrow"><Icon name="arrow-right" size={15} /></span>
 			</button>
 		</div>
-		<p class="basket__note" role="status" hidden>
+		<p class="basket__note" data-note="mail" role="status" hidden>
 			Gotowa wiadomość otworzyła się w&nbsp;Twoim programie pocztowym. Nie otworzyła się? Napisz na <a href={`mailto:${firma.email}`}>{firma.email}</a>.
+		</p>
+		<p class="basket__note" data-note="sent" role="status" hidden>
+			Zapytanie wysłane. {t(`Odpowiemy na podany adres ${odpowiedz}.`)}
 		</p>
 	</aside>
 
@@ -629,7 +728,16 @@ interface Cecha {
 				basket.hidden = atContact || !(site || logo || plan);
 			};
 
-			const note = basket.querySelector('.basket__note');
+			const notes = [...basket.querySelectorAll('.basket__note')];
+			const send = basket.querySelector('.basket__send');
+			const sendLabel = basket.querySelector('.basket__send-label');
+			const email = basket.querySelector('.basket__email');
+			const showNote = (name) => notes.forEach((note) => (note.hidden = note.dataset.note !== name));
+			// A changed choice is a new inquiry: the notes go and the button works again.
+			const fresh = () => {
+				showNote(null);
+				send.disabled = false;
+			};
 
 			picks.forEach((pick) =>
 				pick.addEventListener('click', () => {
@@ -638,18 +746,18 @@ interface Cecha {
 					// One of each kind; a second click on the same one takes it back.
 					picks.filter((other) => other.dataset.pick === pick.dataset.pick).forEach((other) => other.setAttribute('aria-pressed', 'false'));
 					pick.setAttribute('aria-pressed', String(on));
-					note.hidden = true;
+					fresh();
 					render();
 				}),
 			);
 
 			basket.querySelector('.basket__clear').addEventListener('click', () => {
 				picks.forEach((pick) => pick.setAttribute('aria-pressed', 'false'));
-				note.hidden = true;
+				fresh();
 				render();
 			});
 
-			basket.querySelector('.basket__send').addEventListener('click', () => {
+			send.addEventListener('click', async () => {
 				const { site, logo, plan, together, logoPrice, once } = choice();
 				const plain = (amount) => money(amount).replaceAll('\u00a0', ' ');
 				const parts = [
@@ -657,11 +765,69 @@ interface Cecha {
 					logo && `${logo.dataset.name} (${plain(logoPrice)}${together ? ` po rabacie ${plain(discount)}` : ''})`,
 					plan && `abonament ${plan.dataset.name} (${plain(Number(plan.dataset.price))} miesięcznie)`,
 				].filter(Boolean);
-				const message = `Dzień dobry,\n\ninteresuje mnie: ${parts.join(', ')}.${site || logo ? `\nRazem jednorazowo ${plain(once)} netto.` : ''}\n\n`;
+				const interest = `Interesuje mnie: ${parts.join(', ')}.${site || logo ? ` Razem jednorazowo ${plain(once)} netto.` : ''}`;
+				// The ready e-mail; the note says what happened and what to do if nothing opened.
+				const openMail = () => {
+					location.href = `mailto:${basket.dataset.email}?subject=${encodeURIComponent('Zapytanie o ofertę')}&body=${encodeURIComponent(`Dzień dobry,\n\n${interest}\n\n`)}`;
+					showNote('mail');
+				};
 
-				// The question goes out straight from the bar, as a ready e-mail; the note says what happened and what to do if nothing opened.
-				location.href = `mailto:${basket.dataset.email}?subject=${encodeURIComponent('Zapytanie o ofertę')}&body=${encodeURIComponent(message)}`;
-				note.hidden = false;
+				if (!basket.dataset.endpoint) {
+					openMail();
+
+					return;
+				}
+
+				// The first click asks where to answer; the second one sends.
+				if (email.hidden) {
+					email.hidden = false;
+					sendLabel.textContent = 'Wyślij';
+					email.focus();
+
+					return;
+				}
+
+				if (!email.reportValidity()) {
+					return;
+				}
+
+				send.disabled = true;
+
+				const sent = await postInquiry(basket.dataset.endpoint, {
+					email: email.value,
+					topic: 'Zapytanie z cennika',
+					message: interest,
+					offer: Object.fromEntries(
+						[
+							['strona', site],
+							['logo', logo],
+							['abonament', plan],
+						]
+							.filter(([, pick]) => pick)
+							.map(([key, pick]) => [key, pick.dataset.name]),
+					),
+					one_off: site || logo ? once : null,
+					monthly: plan ? Number(plan.dataset.price) : null,
+					website: basket.querySelector('.trap').value,
+				});
+
+				if (sent) {
+					// The button stays off until the choice changes, so the same inquiry is not sent twice.
+					email.hidden = true;
+					sendLabel.textContent = 'Wyślij zapytanie';
+					showNote('sent');
+				} else {
+					send.disabled = false;
+					openMail();
+				}
+			});
+
+			// Enter in the address field sends, like a click on the button.
+			email?.addEventListener('keydown', (event) => {
+				if (event.key === 'Enter') {
+					event.preventDefault();
+					send.click();
+				}
 			});
 
 			// Over the contact section the bar would cover the field it has just filled.

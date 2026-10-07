@@ -1783,6 +1783,29 @@ img {
 }
 
 /* After sending: what happened, and where to write if no e-mail opened. */
+/* Where to answer: shown beside the button once the visitor decides to send. */
+.basket__email {
+	width: 13rem;
+	height: 2.35rem;
+	padding: 0 0.9rem;
+	border: 1px solid var(--line-strong);
+	border-radius: 999px;
+	background: var(--bg);
+	color: var(--on);
+	font: inherit;
+	font-size: 0.92rem;
+}
+
+.basket__email::placeholder {
+	color: var(--on-quiet);
+	opacity: 1;
+}
+
+.basket__send:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
 .basket__note {
 	flex: 0 0 100%;
 	margin: 0;
@@ -2170,6 +2193,7 @@ details[open] summary::after {
 }
 
 .composer select,
+.composer input[type='email'],
 .composer textarea {
 	width: 100%;
 	margin: 0;
@@ -2197,8 +2221,43 @@ details[open] summary::after {
 }
 
 .composer select:focus-visible,
+.composer input:focus-visible,
 .composer textarea:focus-visible {
 	outline: none;
+}
+
+.composer input[type='email'] {
+	font-weight: 600;
+}
+
+.composer input::placeholder {
+	color: var(--ink-3);
+	font-weight: 400;
+	opacity: 1;
+}
+
+/* Topic and e-mail share the first row of the form. */
+.composer__row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.composer__row .composer__field + .composer__field {
+	border-left: 1px solid var(--line);
+}
+
+/* The lines under the form take turns: one at a time. */
+.composer__foot [hidden] {
+	display: none;
+}
+
+/* A field for robots only: out of sight and out of the tab order. */
+.trap {
+	position: absolute;
+	left: -9999px;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
 }
 
 /* Focus is shown on the whole field, label included. */
@@ -2445,6 +2504,15 @@ a.contact--panel:hover {
 		grid-auto-rows: auto;
 	}
 
+	/* Topic and e-mail one under the other. */
+	.composer__row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.composer__row .composer__field + .composer__field {
+		border-left: 0;
+	}
+
 	.prices__title a {
 		margin-left: 0;
 	}
@@ -2557,6 +2625,19 @@ a.contact--panel:hover {
 	.basket__send {
 		flex: 1;
 		justify-content: space-between;
+	}
+
+	/* With the address field open, the field takes the room that is left and the button shrinks to its word.
+	   The field starts from no width at all: a text field otherwise asks for its usual width and pushes
+	   the button out of the bar. */
+	.basket__email {
+		flex: 1 1 0;
+		width: 0;
+		min-width: 0;
+	}
+
+	.basket__email:not([hidden]) ~ .basket__send {
+		flex: none;
 	}
 
 	.basket__note {

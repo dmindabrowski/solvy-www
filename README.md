@@ -20,7 +20,7 @@ Jedna strona, która prowadzi od oferty do zapytania. Działa na telefonie i kom
 - **Cennik:** budowa strony, logo i abonament. Każdą pozycję można zaznaczyć, a pasek u dołu ekranu sumuje wybór i pozwala od razu wysłać zapytanie.
 - **Panel klienta:** cztery zrzuty z panelu, w którym klient zgłasza zmiany i widzi ich postęp.
 - **Pytania:** sześć najczęstszych pytań o abonament, umowę i zmiany. Każde ma własny adres, więc można wysłać link do jednej odpowiedzi.
-- **Kontakt:** krótki formularz z wyborem tematu, który otwiera gotową wiadomość e-mail.
+- **Kontakt:** krótki formularz z wyborem tematu, który otwiera gotową wiadomość e-mail, a obok adres e-mail i numer telefonu.
 
 <img src="docs/strona.png" alt="Zrzut całej strony: góra z hasłem, realizacje, współpraca, cennik, panel klienta, pytania i kontakt" width="720" />
 

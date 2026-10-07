@@ -2,6 +2,7 @@
 	"firma": {
 		"nazwa": "Solvy",
 		"email": "kontakt@solvy.pl",
+		"telefon": "511 404 269",
 		"panelUrl": "https://panel.solvy.pl",
 		"opis": "Strony internetowe dla małych firm: budowa, utrzymanie i zmiany w stałym abonamencie.",
 		"adres": {
@@ -314,6 +315,7 @@
 			"Zmiany na mojej stronie",
 			"Inne pytanie"
 		],
-		"odpowiedz": "W ciągu 1–2 dni roboczych"
+		"odpowiedz": "W ciągu 1–2 dni roboczych",
+		"wysylkaDoPanelu": false
 	}
 }
